@@ -18,9 +18,9 @@ HTML5 Canvas | Vanilla JavaScript | Telegram WebApp API | CSS3
 
 🚀 Try It:
 
-Demo: [Vercel/Netlify Link] (after deploy)
+Demo: (after deploy)
 
-Bot: @YourBotName (Telegram bot with WebApp launcher)
+Bot: (Telegram bot with WebApp launcher)
 
 📌 Tags:
 #Telegram #WebApp #PuzzleGame #JavaScript #Canvas #IndieGame #Minimalist
