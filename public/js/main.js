@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   drawGrid();
-
+  console.log("🖼 drawGrid() loaded");
   // Обработка клика по клетке
   canvas.addEventListener("click", (e) => {
     const rect = canvas.getBoundingClientRect();

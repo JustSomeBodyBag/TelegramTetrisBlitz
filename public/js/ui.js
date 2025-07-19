@@ -1,35 +1,79 @@
-// Telegram WebApp API инициализация
-const tg = window.Telegram.WebApp;
-
-try {
-  tg.expand();   // Растянуть WebApp
-  tg.ready();    // Уведомить Telegram о готовности
-
-  console.log("[Telegram] Platform:", tg.platform);
-  console.log("[Telegram] initData:", tg.initData);
-
-  const user = tg.initDataUnsafe?.user;
-  if (user) {
-    console.log("✅ User ID:", user.id);
-    console.log("✅ Username:", user.username);
-  } else {
-    console.warn("⚠️ Telegram initData not available.");
-    alert("Открой WebApp внутри Telegram для получения данных пользователя.");
-  }
-} catch (err) {
-  console.error("❌ Telegram WebApp error:", err);
-}
-
-// Слушатель на кнопку меню
 document.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const rows = 8;
+  const cols = 8;
+
+  function resizeCanvas() {
+    const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+    canvas.width = size;
+    canvas.height = size;
+  }
+
+  function drawGrid() {
+    const cellSize = canvas.width / cols;
+
+    ctx.fillStyle = "#18222d";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#2c3e50";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= rows; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, i * cellSize);
+      ctx.lineTo(canvas.width, i * cellSize);
+      ctx.stroke();
+    }
+
+    for (let j = 0; j <= cols; j++) {
+      ctx.beginPath();
+      ctx.moveTo(j * cellSize, 0);
+      ctx.lineTo(j * cellSize, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  resizeCanvas();
+  drawGrid();
+
+  window.addEventListener("resize", () => {
+    resizeCanvas();
+    drawGrid();
+  });
+
+  // Обработка клика
+  canvas.addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cellSize = canvas.width / cols;
+
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
+
+    console.log(`Нажата клетка: (${row}, ${col})`);
+  });
+
+  // Меню-кнопка
   const menuBtn = document.getElementById("menu-button");
+
   if (menuBtn) {
     menuBtn.addEventListener("click", () => {
-      tg.showPopup({
-        title: "Меню",
-        message: "Здесь будет пауза, настройки и донат.",
-        buttons: [{ text: "OK", type: "default" }]
-      });
+      if (window.Telegram?.WebApp?.showPopup) {
+        window.Telegram.WebApp.showPopup({
+          title: "Меню",
+          message: "Здесь будет пауза, настройки и донат.",
+          buttons: [{ text: "Закрыть", type: "close" }]
+        });
+      } else {
+        console.warn("Telegram WebApp API недоступен");
+      }
     });
+  } else {
+    console.warn("Кнопка меню не найдена в DOM");
   }
+
+  console.log("🖼 drawGrid() loaded");
 });
