@@ -11,6 +11,27 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.height = size;
   }
 
+  const FIGURES = [
+    [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 0, y: 3 }],
+    [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }, { x: 2, y: 1 }],
+    [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }],
+    [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 1 }]
+  ];
+
+  function drawFigure(baseRow, baseCol, shape, color = "#00ffcc") {
+    const cellSize = canvas.width / cols;
+
+    ctx.fillStyle = color;
+    shape.forEach(({ x, y }) => {
+        const row = baseRow + y;
+        const col = baseCol + x;
+
+        if (row >= 0 && row < rows && col >= 0 && col < cols) {
+            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      });
+    }
+
   function drawGrid() {
     const cellSize = canvas.width / cols;
 
@@ -33,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.lineTo(j * cellSize, canvas.height);
       ctx.stroke();
     }
+
+    drawFigure(2, 2, FIGURES[0]);
   }
 
   resizeCanvas();
