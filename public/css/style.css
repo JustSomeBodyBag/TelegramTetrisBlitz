@@ -1,10 +1,25 @@
-body {
+html, body {
   margin: 0;
-  font-family: sans-serif;
-  text-align: center;
-  background-color: #f0f0f0;
+  padding: 0;
+  background-color: #18222d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 
-#game-root {
-  padding: 20px;
+canvas {
+  border: 2px solid #00bfff;
+  background-color: #1e1e1e;
+}
+
+#menu-button {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background-color: #00bfff;
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
 }
