@@ -1,33 +1,18 @@
-export function drawFigure(ctx, figure, position, cellSize, dragCoords) {
+export function drawFigure(ctx, figure, position, cellSize, pixelPos = null) {
   ctx.fillStyle = "#00bfff";
 
-  if (dragCoords) {
-    const offsetX = dragCoords.x - (figure[0].length * cellSize) / 2;
-    const offsetY = dragCoords.y - (figure.length * cellSize) / 2;
-
-    for (let row = 0; row < figure.length; row++) {
-      for (let col = 0; col < figure[row].length; col++) {
-        if (figure[row][col]) {
-          ctx.fillRect(
-            offsetX + col * cellSize,
-            offsetY + row * cellSize,
-            cellSize,
-            cellSize
-          );
+  for (let r = 0; r < figure.length; r++) {
+    for (let c = 0; c < figure[r].length; c++) {
+      if (figure[r][c]) {
+        let x, y;
+        if (pixelPos) {
+          x = pixelPos.x + c * cellSize;
+          y = pixelPos.y + r * cellSize;
+        } else {
+          x = (position.col + c) * cellSize;
+          y = (position.row + r) * cellSize;
         }
-      }
-    }
-  } else if (position) {
-    for (let row = 0; row < figure.length; row++) {
-      for (let col = 0; col < figure[row].length; col++) {
-        if (figure[row][col]) {
-          ctx.fillRect(
-            (position.col + col) * cellSize,
-            (position.row + row) * cellSize,
-            cellSize,
-            cellSize
-          );
-        }
+        ctx.fillRect(x, y, cellSize, cellSize);
       }
     }
   }

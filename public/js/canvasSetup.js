@@ -1,18 +1,12 @@
-export function setupCanvas(canvas, cols, rows, isFloating = false) {
+export function setupCanvas(canvas, cols, rows) {
   const ctx = canvas.getContext("2d");
   let cellSize = 40;
 
   function resizeCanvas() {
-    if (isFloating) {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      cellSize = Math.min(canvas.width / cols, canvas.height / rows);
-    } else {
-      const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
-      canvas.width = size;
-      canvas.height = size;
-      cellSize = canvas.width / cols;
-    }
+    const width = cellSize * cols;
+    const height = cellSize * rows;
+    canvas.width = width;
+    canvas.height = height;
   }
 
   function drawField() {
