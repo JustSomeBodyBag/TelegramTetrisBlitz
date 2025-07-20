@@ -4,7 +4,7 @@ import {
   createField,
   drawFixedBlocks,
   fixFigureToField,
-  clearFullRows
+  clearFullLines
 } from "./field.js";
 import {
   setupMouseControls,
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function fixAndSpawn() {
     if (!figure) return;
     fixFigureToField(field, figure, figurePos);
-    clearFullRows(field); // можешь заменить на clearFullLines
+    clearFullLines(field); // можешь заменить на clearFullLines
     figure = null;
     redraw();
   }
