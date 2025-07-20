@@ -8,14 +8,25 @@ export function createField(rows, cols) {
 
 export function drawFixedBlocks(ctx, field, cellSize) {
   ctx.fillStyle = "#0066cc";
+  ctx.strokeStyle = "#003366";
+  ctx.lineWidth = 1;
+
   for (let r = 0; r < field.length; r++) {
     for (let c = 0; c < field[r].length; c++) {
       if (field[r][c]) {
-        ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+        const x = c * cellSize;
+        const y = r * cellSize;
+
+        // Заливка блока
+        ctx.fillRect(x, y, cellSize, cellSize);
+
+        // Внутренние границы
+        ctx.strokeRect(x, y, cellSize, cellSize);
       }
     }
   }
 }
+
 
 export function fixFigureToField(field, figure, pos) {
   for (let r = 0; r < figure.length; r++) {
@@ -32,11 +43,49 @@ export function fixFigureToField(field, figure, pos) {
 }
 
 export function clearFullLines(field) {
-  for (let r = field.length - 1; r >= 0; r--) {
+  const rows = field.length;
+  const cols = field[0].length;
+
+  for (let r = 0; r < rows; r++) {
     if (field[r].every(cell => cell === 1)) {
-      field.splice(r, 1);
-      field.unshift(new Array(field[0].length).fill(0));
-      r++; // проверить эту строку ещё раз после смещения
+      for (let c = 0; c < cols; c++) {
+        field[r][c] = 0;
+      }
     }
   }
+
+  for (let c = 0; c < cols; c++) {
+    let fullCol = true;
+    for (let r = 0; r < rows; r++) {
+      if (field[r][c] !== 1) {
+        fullCol = false;
+        break;
+      }
+    }
+    if (fullCol) {
+      for (let r = 0; r < rows; r++) {
+        field[r][c] = 0;
+      }
+    }
+  }
+}
+
+export function doesFigureFit(field, figure, pos) {
+  for (let r = 0; r < figure.length; r++) {
+    for (let c = 0; c < figure[r].length; c++) {
+      if (figure[r][c]) {
+        const fr = pos.row + r;
+        const fc = pos.col + c;
+
+        if (
+          fr < 0 || fr >= field.length ||
+          fc < 0 || fc >= field[0].length ||
+          field[fr][fc] !== 0
+        ) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
 }

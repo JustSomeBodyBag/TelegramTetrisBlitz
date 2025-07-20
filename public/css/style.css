@@ -1,20 +1,18 @@
-html, body {
+/* Сброс базовых отступов */
+* {
   margin: 0;
   padding: 0;
-  background-color: #18222d;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+  box-sizing: border-box;
 }
 
-canvas {
-  background-color: #1e1e1e;
-  max-width: 90vmin;
+html, body, #container {
   width: 100%;
-  height: auto;
-  border: 2px solid #00bfff;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #18222d; /* Тёмный фон */
+  color: #ffffff;
 }
 
 #floatingCanvas {
@@ -23,40 +21,49 @@ canvas {
   left: 0;
   width: 100vw;
   height: 100vh;
-  pointer-events: auto;  /* ! Важно — чтобы не блокировал клики */
-  z-index: 1000;
+  z-index: 2;
   background-color: transparent;
-  border: none;
+  pointer-events: auto;
 }
 
-
-#joystick {
+#gameCanvas {
   position: fixed;
-  width: 80px;
-  height: 80px;
-  margin: -40px 0 0 -40px; /* центр по координате */
-  border: 2px solid rgba(0, 191, 255, 0.4);
-  border-radius: 50%;
-  background-color: rgba(0, 191, 255, 0.05);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 1000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;  /* 8 клеток по 40px */
+  height: 320px;
+  border: 2px solid #3390ec; 
+  background: #18222d;
+  box-shadow: 0 0 10px #3390ec44;
+  z-index: 1;
+  touch-action: none;
 }
 
-#menu-button {
-  margin-top: 12px;
-  padding: 10px 16px;
-  background: #00bfff;
+.top-button {
+  position: fixed;
+  top: 10px;
+  padding: 8px 16px;
+  font-size: 16px;
+  background: #3390ec; 
+  border: none;
   color: white;
   border-radius: 8px;
-  font-weight: bold;
-  text-align: center;
   cursor: pointer;
+  user-select: none;
+  z-index: 3;
+  transition: background 0.3s ease;
+  box-shadow: 0 2px 8px #3390ecaa;
 }
 
-#spawn-button, #menu-button {
-  position: relative; /* или fixed, если нужно */
-  z-index: 1100; /* выше, чем у #floatingCanvas (у него 1000) */
-  margin: 10px;
+.top-button:hover {
+  background: #4ca0ff;
+}
+
+.top-button.left {
+  left: 10px;
+}
+
+.top-button.right {
+  right: 10px;
 }

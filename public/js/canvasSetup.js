@@ -1,34 +1,30 @@
 export function setupCanvas(canvas, cols, rows) {
   const ctx = canvas.getContext("2d");
-  let cellSize = 40;
+  const cellSize = 40;
 
-  function resizeCanvas() {
-    const width = cellSize * cols;
-    const height = cellSize * rows;
-    canvas.width = width;
-    canvas.height = height;
-  }
+  canvas.width = cols * cellSize;
+  canvas.height = rows * cellSize;
 
   function drawField() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#18222d";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = "#2c3e50";
-    for (let i = 0; i <= rows; i++) {
+    ctx.strokeStyle = "#00bfff";
+    ctx.lineWidth = 1;
+    for (let r = 0; r <= rows; r++) {
       ctx.beginPath();
-      ctx.moveTo(0, i * cellSize);
-      ctx.lineTo(canvas.width, i * cellSize);
+      ctx.moveTo(0, r * cellSize);
+      ctx.lineTo(cols * cellSize, r * cellSize);
       ctx.stroke();
     }
-    for (let j = 0; j <= cols; j++) {
+    for (let c = 0; c <= cols; c++) {
       ctx.beginPath();
-      ctx.moveTo(j * cellSize, 0);
-      ctx.lineTo(j * cellSize, canvas.height);
+      ctx.moveTo(c * cellSize, 0);
+      ctx.lineTo(c * cellSize, rows * cellSize);
       ctx.stroke();
     }
   }
 
-  resizeCanvas();
-
-  return { ctx, cellSize, drawField, resizeCanvas };
+  return { ctx, cellSize, drawField };
 }
