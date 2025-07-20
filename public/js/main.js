@@ -1,46 +1,59 @@
+import { setupCanvas } from "./canvasSetup.js";
+import { drawFigure } from "./figure.js";
+import { createField, drawFixedBlocks, fixFigureToField, clearFullRows } from "./field.js";
+import { setupMouseControls, setupTouchControls } from "./inputHandlers.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
+  const joystickZone = document.getElementById("joystick-zone");
+  const menuButton = document.getElementById("menu-button");
 
   const rows = 8;
   const cols = 8;
-  const cellSize = 40;
 
-  function drawGrid() {
-    // Заливка фона
-    ctx.fillStyle = "#18222d";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  let figure = [
+    [1],
+    [1],
+    [1],
+    [1],
+  ];
 
-    // Рисуем горизонтальные и вертикальные линии
-    ctx.strokeStyle = "#2c3e50";
-    ctx.lineWidth = 1;
+  let figurePos = { row: 0, col: 2 };
+  const field = createField(rows, cols);
 
-    for (let i = 0; i <= rows; i++) {
-      ctx.beginPath();
-      ctx.moveTo(0, i * cellSize);
-      ctx.lineTo(cols * cellSize, i * cellSize);
-      ctx.stroke();
-    }
+  const { ctx, cellSize, drawField, resizeCanvas } = setupCanvas(canvas, cols, rows, redraw);
 
-    for (let j = 0; j <= cols; j++) {
-      ctx.beginPath();
-      ctx.moveTo(j * cellSize, 0);
-      ctx.lineTo(j * cellSize, rows * cellSize);
-      ctx.stroke();
-    }
+  function redraw() {
+    drawField();
+    drawFixedBlocks(ctx, field, cellSize);
+    drawFigure(ctx, figure, figurePos, cellSize);
   }
 
-  drawGrid();
-  console.log("🖼 drawGrid() loaded");
-  // Обработка клика по клетке
-  canvas.addEventListener("click", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  function fixAndSpawn() {
+    fixFigureToField(field, figure, figurePos);
+    clearFullRows(field);
+    figurePos = { row: 0, col: 2 };
+    redraw();
+  }
 
-    const col = Math.floor(x / cellSize);
-    const row = Math.floor(y / cellSize);
-
-    console.log(`Нажата клетка: (${row}, ${col})`);
+  setupMouseControls(canvas, cols, rows, cellSize, figure, figurePos, fixAndSpawn);
+  setupTouchControls(joystickZone, cols, rows, figure, figurePos, (isFinal = false) => {
+    redraw();
+    if (isFinal) fixAndSpawn();
   });
+
+  if (menuButton) {
+    menuButton.addEventListener("click", () => {
+      if (window.Telegram?.WebApp?.showPopup) {
+        window.Telegram.WebApp.showPopup({
+          title: "Меню",
+          message: "Пауза, настройки, донат",
+          buttons: [{ text: "Закрыть", type: "close" }],
+        });
+      }
+    });
+  }
+
+  redraw();
+  console.log("✅ UI и управление загружены");
 });
