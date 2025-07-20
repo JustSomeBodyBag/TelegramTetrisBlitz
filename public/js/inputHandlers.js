@@ -48,6 +48,8 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
   let centerX = 0;
   let centerY = 0;
   let loopId = null;
+  let currentX = 0;
+  let currentY = 0;
 
   function createJoystick(x, y) {
     joystick = document.createElement("div");
@@ -59,7 +61,8 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
     joystick.style.borderRadius = "50%";
     joystick.style.border = "1px solid #666";
     joystick.style.background = "rgba(255,255,255,0.05)";
-    joystick.style.zIndex = "1000";
+    joystick.style.zIndex = "9999";
+    joystick.style.pointerEvents = "none";
     document.body.appendChild(joystick);
   }
 
@@ -72,7 +75,7 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
 
   function startLoop() {
     if (loopId) return;
-    loopId = requestAnimationFrame(loop);
+    loop();
   }
 
   function stopLoop() {
@@ -83,17 +86,18 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
   function loop() {
     const figure = getFigure();
     const figurePos = getFigurePos();
-    if (!figure || !figurePos || !touchId) return;
+    if (!figure || !figurePos || touchId === null) return;
 
     const dx = currentX - centerX;
     const dy = currentY - centerY;
-
     const threshold = 10;
-    let moved = false;
 
     const speed = Math.min(1 + Math.max(Math.abs(dx), Math.abs(dy)) / 30, 10);
     const now = Date.now();
+
     if (!loop.lastMove || now - loop.lastMove > (1000 / speed)) {
+      let moved = false;
+
       if (Math.abs(dx) > Math.abs(dy)) {
         if (dx > threshold && figurePos.col < cols - figure[0].length) {
           figurePos.col++;
@@ -111,6 +115,7 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
           moved = true;
         }
       }
+
       if (moved) {
         loop.lastMove = now;
         onUpdate(false);
@@ -120,11 +125,9 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
     loopId = requestAnimationFrame(loop);
   }
 
-  let currentX = 0;
-  let currentY = 0;
-
   document.addEventListener("touchstart", (e) => {
-    if (touchId !== null) return; // only one joystick
+    if (touchId !== null) return;
+
     const touch = e.changedTouches[0];
     touchId = touch.identifier;
     centerX = touch.clientX;
@@ -133,27 +136,27 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
     currentY = centerY;
     createJoystick(centerX, centerY);
     startLoop();
-  });
+  }, { passive: false });
 
   document.addEventListener("touchmove", (e) => {
-    for (let t of e.changedTouches) {
+    for (const t of e.changedTouches) {
       if (t.identifier === touchId) {
         currentX = t.clientX;
         currentY = t.clientY;
         break;
       }
     }
-  });
+  }, { passive: false });
 
   document.addEventListener("touchend", (e) => {
-    for (let t of e.changedTouches) {
+    for (const t of e.changedTouches) {
       if (t.identifier === touchId) {
         touchId = null;
         stopLoop();
         removeJoystick();
-        onUpdate(true); // финальная фиксация
+        onUpdate(true);
         break;
       }
     }
-  });
+  }, { passive: false });
 }
