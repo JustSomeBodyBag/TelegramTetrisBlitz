@@ -1,14 +1,19 @@
-export function setupMouseControls(canvas, cols, rows, cellSize, figure, figurePos, onUpdate) {
+export function setupMouseControls(canvas, cols, rows, cellSize, getFigure, getFigurePos, onUpdate) {
   let isDragging = false;
 
   canvas.addEventListener("mousedown", () => { isDragging = true; });
   canvas.addEventListener("mouseup", (e) => {
     isDragging = false;
+    const figure = getFigure();
+    const figurePos = getFigurePos();
+    if (!figure) return;
+
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const col = Math.floor(x / cellSize);
     const row = Math.floor(y / cellSize);
+
     if (col >= 0 && col <= cols - figure[0].length && row >= 0 && row <= rows - figure.length) {
       figurePos.col = col;
       figurePos.row = row;
@@ -18,11 +23,16 @@ export function setupMouseControls(canvas, cols, rows, cellSize, figure, figureP
 
   canvas.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
+    const figure = getFigure();
+    const figurePos = getFigurePos();
+    if (!figure) return;
+
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const col = Math.floor(x / cellSize);
     const row = Math.floor(y / cellSize);
+
     if (col >= 0 && col <= cols - figure[0].length && row >= 0 && row <= rows - figure.length) {
       figurePos.col = col;
       figurePos.row = row;
@@ -31,7 +41,7 @@ export function setupMouseControls(canvas, cols, rows, cellSize, figure, figureP
   });
 }
 
-export function setupTouchControls(joystickZone, cols, rows, figure, figurePos, onUpdate) {
+export function setupTouchControls(joystickZone, cols, rows, getFigure, getFigurePos, onUpdate) {
   if (!joystickZone) return;
 
   let startX = null;
@@ -45,6 +55,10 @@ export function setupTouchControls(joystickZone, cols, rows, figure, figurePos, 
   });
 
   joystickZone.addEventListener("touchmove", (e) => {
+    const figure = getFigure();
+    const figurePos = getFigurePos();
+    if (!figure) return;
+
     const now = Date.now();
     if (now - lastMove < 100) return;
 

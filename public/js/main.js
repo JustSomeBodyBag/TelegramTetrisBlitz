@@ -7,48 +7,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("gameCanvas");
   const joystickZone = document.getElementById("joystick-zone");
   const menuButton = document.getElementById("menu-button");
+  const spawnButton = document.getElementById("spawn-button");
 
   const rows = 8;
   const cols = 8;
 
-  let figure = [
-    [1],
-    [1],
-    [1],
-    [1],
-  ];
-
+  let figure = null;
   let figurePos = { row: 0, col: 2 };
   const field = createField(rows, cols);
 
-  const { ctx, cellSize, drawField, resizeCanvas } = setupCanvas(canvas, cols, rows);
+  const { ctx, cellSize, drawField } = setupCanvas(canvas, cols, rows, redraw);
 
   function redraw() {
     drawField();
     drawFixedBlocks(ctx, field, cellSize);
-    drawFigure(ctx, figure, figurePos, cellSize);
+    if (figure) {
+      drawFigure(ctx, figure, figurePos, cellSize);
+    }
   }
-
-  // Подписка на ресайз, теперь redraw вызывается уже после инициализации drawField
-  window.addEventListener("resize", () => {
-    resizeCanvas();
-    redraw();
-  });
 
   function fixAndSpawn() {
+    if (!figure) return;
     fixFigureToField(field, figure, figurePos);
     clearFullRows(field);
-    figurePos.row = 0;
-    figurePos.col = 2;
+    figure = null;
     redraw();
   }
 
-
-  setupMouseControls(canvas, cols, rows, cellSize, figure, figurePos, fixAndSpawn);
-  setupTouchControls(joystickZone, cols, rows, figure, figurePos, (isFinal = false) => {
+  setupMouseControls(canvas, cols, rows, cellSize, () => figure, () => figurePos, fixAndSpawn);
+  setupTouchControls(joystickZone, cols, rows, () => figure, () => figurePos, (isFinal = false) => {
     redraw();
     if (isFinal) fixAndSpawn();
   });
+
+  if (spawnButton) {
+    spawnButton.addEventListener("click", () => {
+      figure = [
+        [1],
+        [1],
+        [1],
+        [1],
+      ];
+      figurePos.row = 0;
+      figurePos.col = 2;
+      redraw();
+    });
+  }
 
   if (menuButton) {
     menuButton.addEventListener("click", () => {
@@ -63,5 +67,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   redraw();
-  console.log("✅ UI и управление загружены");
 });
