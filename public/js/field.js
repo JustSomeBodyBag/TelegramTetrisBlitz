@@ -37,3 +37,29 @@ export function clearFullRows(field) {
     }
   }
 }
+
+export function clearFullColumns(field) {
+  const rows = field.length;
+  const cols = field[0].length;
+
+  for (let c = 0; c < cols; c++) {
+    let fullColumn = true;
+    for (let r = 0; r < rows; r++) {
+      if (field[r][c] !== 1) {
+        fullColumn = false;
+        break;
+      }
+    }
+    if (fullColumn) {
+      for (let r = 0; r < rows; r++) {
+        field[r][c] = 0;
+      }
+    }
+  }
+}
+
+// Обобщенная функция очистки линий и столбцов
+export function clearFullLines(field) {
+  clearFullRows(field);
+  clearFullColumns(field);
+}
