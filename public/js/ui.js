@@ -91,6 +91,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function clearFullLines() {
+    for (let r = rows - 1; r >= 0; r--) {
+      if (field[r].every(cell => cell === 1)) {
+        field.splice(r, 1);
+        field.unshift(Array(cols).fill(0));
+        r++; // проверить эту же строку после сдвига
+      }
+    }
+  }
+
   function spawnNewFigure() {
     figurePos = { row: 0, col: 2 };
     // Пока только палка
@@ -114,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.addEventListener("mouseup", (e) => {
     isDragging = false;
 
-    // Пересчитать координаты
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -123,16 +132,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const row = Math.floor(y / cellSize);
 
     if (
-        col >= 0 &&
-        col <= cols - figure[0].length &&
-        row >= 0 &&
-        row <= rows - figure.length
+      col >= 0 &&
+      col <= cols - figure[0].length &&
+      row >= 0 &&
+      row <= rows - figure.length
     ) {
-        figurePos = { col, row };
+      figurePos = { col, row };
     }
 
-    // Фиксация и обновление
     fixFigureToField();
+    clearFullLines();
     spawnNewFigure();
     redraw();
   });
@@ -179,7 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const dy = touch.clientY - startY;
 
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Горизонталь
         if (dx > 20 && figurePos.col < cols - figure[0].length) {
           figurePos.col++;
           startX = touch.clientX;
@@ -188,7 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
           startX = touch.clientX;
         }
       } else {
-        // Вертикаль
         if (dy > 20 && figurePos.row < rows - figure.length) {
           figurePos.row++;
           startY = touch.clientY;
@@ -204,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     joystickZone.addEventListener("touchend", () => {
       fixFigureToField();
+      clearFullLines();
       spawnNewFigure();
       redraw();
     });
