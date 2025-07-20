@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   let figurePos = { row: 0, col: 2 };
+  const field = Array.from({ length: rows }, () => Array(cols).fill(0));
 
   function resizeCanvas() {
     const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
@@ -44,6 +45,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function drawFixedBlocks() {
+    ctx.fillStyle = "#3498db";
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (field[r][c]) {
+          const x = c * cellSize;
+          const y = r * cellSize;
+          ctx.fillRect(x, y, cellSize, cellSize);
+          ctx.strokeRect(x, y, cellSize, cellSize);
+        }
+      }
+    }
+  }
+
   function drawFigure() {
     ctx.fillStyle = "#ff6347";
     for (let r = 0; r < figure.length; r++) {
@@ -60,7 +75,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function redraw() {
     drawField();
+    drawFixedBlocks();
     drawFigure();
+  }
+
+  function fixFigureToField() {
+    for (let r = 0; r < figure.length; r++) {
+      for (let c = 0; c < figure[r].length; c++) {
+        if (figure[r][c]) {
+          const fr = figurePos.row + r;
+          const fc = figurePos.col + c;
+          field[fr][fc] = 1;
+        }
+      }
+    }
+  }
+
+  function spawnNewFigure() {
+    figurePos = { row: 0, col: 2 };
+    // Пока только палка
   }
 
   resizeCanvas();
@@ -71,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     redraw();
   });
 
-  // 🖱 Управление мышью — перемещаем по сетке при зажатии
+  // 🖱 Управление мышью
   let isDragging = false;
 
   canvas.addEventListener("mousedown", () => {
@@ -80,6 +113,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   canvas.addEventListener("mouseup", () => {
     isDragging = false;
+    fixFigureToField();
+    spawnNewFigure();
+    redraw();
   });
 
   canvas.addEventListener("mousemove", (e) => {
@@ -103,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 📱 Управление пальцем — свайпы влево/вправо/вниз
+  // 📱 Свайпы/джойстик
   if (joystickZone) {
     let startX = null;
     let startY = null;
@@ -124,27 +160,32 @@ document.addEventListener("DOMContentLoaded", () => {
       const dy = touch.clientY - startY;
 
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Горизонтальное
+        // Горизонталь
         if (dx > 20 && figurePos.col < cols - figure[0].length) {
-            figurePos.col++;
-            startX = touch.clientX;
+          figurePos.col++;
+          startX = touch.clientX;
         } else if (dx < -20 && figurePos.col > 0) {
-            figurePos.col--;
-            startX = touch.clientX;
+          figurePos.col--;
+          startX = touch.clientX;
         }
-        } else {
-        // Вертикальное
+      } else {
+        // Вертикаль
         if (dy > 20 && figurePos.row < rows - figure.length) {
-            figurePos.row++;
-            startY = touch.clientY;
+          figurePos.row++;
+          startY = touch.clientY;
         } else if (dy < -20 && figurePos.row > 0) {
-            figurePos.row--;
-            startY = touch.clientY;
+          figurePos.row--;
+          startY = touch.clientY;
         }
-       }
-
+      }
 
       lastMove = now;
+      redraw();
+    });
+
+    joystickZone.addEventListener("touchend", () => {
+      fixFigureToField();
+      spawnNewFigure();
       redraw();
     });
   }
