@@ -111,8 +111,27 @@ document.addEventListener("DOMContentLoaded", () => {
     isDragging = true;
   });
 
-  canvas.addEventListener("mouseup", () => {
+  canvas.addEventListener("mouseup", (e) => {
     isDragging = false;
+
+    // Пересчитать координаты
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
+
+    if (
+        col >= 0 &&
+        col <= cols - figure[0].length &&
+        row >= 0 &&
+        row <= rows - figure.length
+    ) {
+        figurePos = { col, row };
+    }
+
+    // Фиксация и обновление
     fixFigureToField();
     spawnNewFigure();
     redraw();
