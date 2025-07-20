@@ -17,6 +17,17 @@ canvas {
   border: 2px solid #00bfff;
 }
 
+#floatingCanvas {
+  position: fixed;
+  pointer-events: none; /* Не блокируем клики, чтобы кнопки работали */
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 320px;
+  z-index: 1000;
+}
+
+
 #joystick {
   position: fixed;
   width: 80px;
