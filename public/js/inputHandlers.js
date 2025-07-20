@@ -16,41 +16,27 @@ export function setupMouseControls(onUpdate) {
     isDragging = false;
     onUpdate(true, e.clientX, e.clientY);
   });
-
-  window.addEventListener("click", (e) => {
-    onUpdate(true, e.clientX, e.clientY);
-  });
 }
 
 export function setupTouchControls(onUpdate) {
-  let touchId = null;
+  let isTouching = false;
 
-  document.addEventListener("touchstart", (e) => {
-    const touch = e.changedTouches[0];
-    touchId = touch.identifier;
+  window.addEventListener("touchstart", (e) => {
+    isTouching = true;
+    const touch = e.touches[0];
     onUpdate(false, touch.clientX, touch.clientY);
   });
 
-  document.addEventListener("touchmove", (e) => {
-    if (touchId === null) return;
-
-    for (const t of e.changedTouches) {
-      if (t.identifier === touchId) {
-        onUpdate(false, t.clientX, t.clientY);
-        break;
-      }
-    }
+  window.addEventListener("touchmove", (e) => {
+    if (!isTouching) return;
+    const touch = e.touches[0];
+    onUpdate(false, touch.clientX, touch.clientY);
   });
 
-  document.addEventListener("touchend", (e) => {
-    if (touchId === null) return;
-
-    for (const t of e.changedTouches) {
-      if (t.identifier === touchId) {
-        onUpdate(true, t.clientX, t.clientY);
-        touchId = null;
-        break;
-      }
-    }
+  window.addEventListener("touchend", (e) => {
+    if (!isTouching) return;
+    isTouching = false;
+    const touch = e.changedTouches[0];
+    onUpdate(true, touch.clientX, touch.clientY);
   });
 }
