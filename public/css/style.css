@@ -23,7 +23,7 @@ canvas {
   left: 0;
   width: 100vw;
   height: 100vh;
-  pointer-events: none;  /* ! Важно — чтобы не блокировал клики */
+  pointer-events: auto;  /* ! Важно — чтобы не блокировал клики */
   z-index: 1000;
   background-color: transparent;
   border: none;
@@ -55,3 +55,8 @@ canvas {
   cursor: pointer;
 }
 
+#spawn-button, #menu-button {
+  position: relative; /* или fixed, если нужно */
+  z-index: 1100; /* выше, чем у #floatingCanvas (у него 1000) */
+  margin: 10px;
+}
