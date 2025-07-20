@@ -42,71 +42,65 @@ export function setupMouseControls(canvas, cols, rows, cellSize, getFigure, getF
   }
 }
 
-export function setupTouchControls(joystickZone, cols, rows, getFigure, getFigurePos, onUpdate) {
-  if (!joystickZone) return;
+export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate) {
+  const joystick = document.getElementById("joystick");
+  let animationFrame = null;
+  let touchStart = null;
+  let velocity = { x: 0, y: 0 };
 
-  let direction = null;
-  let holdInterval = null;
-
-  function startMoving(dir) {
-    direction = dir;
-    moveFigure();
-    holdInterval = setInterval(moveFigure, 130); // ускорение
-  }
-
-  function moveFigure() {
+  function moveLoop() {
     const figure = getFigure();
     const figurePos = getFigurePos();
     if (!figure || !figurePos) return;
 
-    switch (direction) {
-      case "left":
-        if (figurePos.col > 0) figurePos.col--;
-        break;
-      case "right":
-        if (figurePos.col < cols - figure[0].length) figurePos.col++;
-        break;
-      case "up":
-        if (figurePos.row > 0) figurePos.row--;
-        break;
-      case "down":
-        if (figurePos.row < rows - figure.length) figurePos.row++;
-        break;
-    }
+    const speedFactor = 0.08;
+    const maxSpeed = 0.6;
+
+    let dx = velocity.x * speedFactor;
+    let dy = velocity.y * speedFactor;
+
+    dx = Math.max(-maxSpeed, Math.min(maxSpeed, dx));
+    dy = Math.max(-maxSpeed, Math.min(maxSpeed, dy));
+
+    let newCol = figurePos.col + dx;
+    let newRow = figurePos.row + dy;
+
+    newCol = Math.max(0, Math.min(cols - figure[0].length, newCol));
+    newRow = Math.max(0, Math.min(rows - figure.length, newRow));
+
+    figurePos.col = Math.floor(newCol);
+    figurePos.row = Math.floor(newRow);
 
     onUpdate(false);
+    animationFrame = requestAnimationFrame(moveLoop);
   }
 
-  function stopMoving() {
-    clearInterval(holdInterval);
-    direction = null;
-    onUpdate(true); // финал
-  }
-
-  joystickZone.addEventListener("touchstart", (e) => {
+  document.addEventListener("touchstart", (e) => {
     const touch = e.touches[0];
-    joystickZone.startX = touch.clientX;
-    joystickZone.startY = touch.clientY;
+    touchStart = { x: touch.clientX, y: touch.clientY };
+    velocity = { x: 0, y: 0 };
+
+    joystick.style.left = `${touch.clientX}px`;
+    joystick.style.top = `${touch.clientY}px`;
+    joystick.style.opacity = "1";
+
+    animationFrame = requestAnimationFrame(moveLoop);
   });
 
-  joystickZone.addEventListener("touchmove", (e) => {
-    if (direction) return;
-
+  document.addEventListener("touchmove", (e) => {
+    if (!touchStart) return;
     const touch = e.touches[0];
-    const dx = touch.clientX - joystickZone.startX;
-    const dy = touch.clientY - joystickZone.startY;
-
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
-
-    if (Math.max(absX, absY) < 20) return;
-
-    if (absX > absY) {
-      startMoving(dx > 0 ? "right" : "left");
-    } else {
-      startMoving(dy > 0 ? "down" : "up");
-    }
+    velocity = {
+      x: touch.clientX - touchStart.x,
+      y: touch.clientY - touchStart.y,
+    };
   });
 
-  joystickZone.addEventListener("touchend", stopMoving);
+  document.addEventListener("touchend", () => {
+    cancelAnimationFrame(animationFrame);
+    joystick.style.opacity = "0";
+    velocity = { x: 0, y: 0 };
+    touchStart = null;
+    onUpdate(true);
+  });
 }

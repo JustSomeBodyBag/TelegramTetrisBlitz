@@ -56,14 +56,13 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   setupTouchControls(
-    joystickZone,
     cols,
     rows,
     () => figure,
     () => figurePos,
     (isFinal = false) => {
-      redraw();
-      if (isFinal) fixAndSpawn();
+        redraw();
+        if (isFinal) fixAndSpawn();
     }
   );
 
