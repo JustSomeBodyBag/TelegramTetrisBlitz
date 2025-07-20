@@ -12,106 +12,100 @@ import {
 } from "./inputHandlers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.getElementById("gameCanvas");
+  const gameCanvas = document.getElementById("gameCanvas");
   const floatingCanvas = document.getElementById("floatingCanvas");
-  const spawnButton = document.getElementById("spawn-button");
   const menuButton = document.getElementById("menu-button");
+  const spawnButton = document.getElementById("spawn-button");
 
   const rows = 8;
   const cols = 8;
 
   const field = createField(rows, cols);
-  const { ctx, cellSize, drawField } = setupCanvas(canvas, cols, rows, redraw);
-  const floatingCtx = floatingCanvas.getContext("2d");
 
   let figure = null;
   let figurePos = { row: 0, col: 2 };
   let dragCoords = null;
 
-  function redrawFloating() {
-    floatingCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
-    if (figure && dragCoords) {
-      drawFigure(floatingCtx, figure, null, cellSize, dragCoords);
-    }
-  }
+  const { ctx: gameCtx, cellSize, drawField } = setupCanvas(gameCanvas, cols, rows, redrawGame);
+  const { ctx: floatCtx } = setupCanvas(floatingCanvas, cols, rows, redrawFloating);
 
-  function redraw() {
+  function redrawGame() {
     drawField();
-    drawFixedBlocks(ctx, field, cellSize);
+    drawFixedBlocks(gameCtx, field, cellSize);
+
     if (figure && !dragCoords) {
-      drawFigure(ctx, figure, figurePos, cellSize);
+      drawFigure(gameCtx, figure, figurePos, cellSize);
     }
-    redrawFloating();
   }
 
-  function fixAndSpawn() {
-    if (!figure) return;
-
-    if (dragCoords) {
-      const rect = canvas.getBoundingClientRect();
-      const localX = dragCoords.x - rect.left;
-      const localY = dragCoords.y - rect.top;
-
-      const col = Math.round(localX / cellSize);
-      const row = Math.round(localY / cellSize);
-
-      figurePos.col = Math.max(0, Math.min(cols - figure[0].length, col));
-      figurePos.row = Math.max(0, Math.min(rows - figure.length, row));
-
-      dragCoords = null;
+  function redrawFloating() {
+    floatCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
+    if (figure && dragCoords) {
+      drawFigure(floatCtx, figure, null, cellSize, dragCoords);
     }
+  }
+
+  function fixAndSpawn(clientX, clientY) {
+    if (!figure || !dragCoords) return;
+
+    const rect = gameCanvas.getBoundingClientRect();
+    const localX = clientX - rect.left;
+    const localY = clientY - rect.top;
+
+    const col = Math.floor(localX / cellSize);
+    const row = Math.floor(localY / cellSize);
+
+    figurePos = {
+      row: Math.max(0, Math.min(rows - figure.length, row)),
+      col: Math.max(0, Math.min(cols - figure[0].length, col)),
+    };
 
     fixFigureToField(field, figure, figurePos);
     clearFullLines(field);
+
     figure = null;
-    floatingCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
-    redraw();
+    dragCoords = null;
+    redrawGame();
+    redrawFloating();
   }
 
-  function updateDrag(isFinal, x, y) {
+  function handleMove(isFinal, clientX, clientY) {
     if (!figure) return;
-    dragCoords = { x, y };
+    dragCoords = { x: clientX, y: clientY };
+    redrawFloating();
+
     if (isFinal) {
-      fixAndSpawn();
-    } else {
-      redraw();
+      fixAndSpawn(clientX, clientY);
     }
   }
 
-  setupMouseControls(updateDrag);
-  setupTouchControls(updateDrag);
+  setupMouseControls(handleMove);
+  setupTouchControls(handleMove);
 
-  if (spawnButton) {
-    spawnButton.addEventListener("click", () => {
-      figure = [
-        [1],
-        [1],
-        [1],
-        [1],
-      ];
-      figurePos = { row: 0, col: 2 };
+  spawnButton.addEventListener("click", () => {
+    figure = [
+      [1],
+      [1],
+      [1],
+      [1],
+    ];
+    figurePos = { row: 0, col: 2 };
+    dragCoords = {
+      x: menuButton.getBoundingClientRect().left + 20,
+      y: menuButton.getBoundingClientRect().top + 20,
+    };
+    redrawFloating();
+  });
 
-      const menuRect = menuButton.getBoundingClientRect();
-      dragCoords = {
-        x: menuRect.left + menuRect.width / 2,
-        y: menuRect.top + menuRect.height / 2
-      };
+  menuButton.addEventListener("click", () => {
+    if (window.Telegram?.WebApp?.showPopup) {
+      window.Telegram.WebApp.showPopup({
+        title: "Меню",
+        message: "Пауза, настройки, донат",
+        buttons: [{ text: "Закрыть", type: "close" }],
+      });
+    }
+  });
 
-      redraw();
-    });
-  }
-
-  if (menuButton) {
-    menuButton.addEventListener("click", () => {
-      if (window.Telegram?.WebApp?.showPopup) {
-        window.Telegram.WebApp.showPopup({
-          title: "Меню",
-          message: "Пауза, настройки, донат",
-          buttons: [{ text: "Закрыть", type: "close" }],
-        });
-      }
-    });
-  }
-
-  redraw();
+  redrawGame();
 });

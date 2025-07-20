@@ -18,7 +18,6 @@ export function setupMouseControls(onUpdate) {
   });
 
   window.addEventListener("click", (e) => {
-    if (isDragging) return;
     onUpdate(true, e.clientX, e.clientY);
   });
 }
@@ -27,7 +26,6 @@ export function setupTouchControls(onUpdate) {
   let touchId = null;
 
   document.addEventListener("touchstart", (e) => {
-    if (touchId !== null) return;
     const touch = e.changedTouches[0];
     touchId = touch.identifier;
     onUpdate(false, touch.clientX, touch.clientY);
@@ -35,6 +33,7 @@ export function setupTouchControls(onUpdate) {
 
   document.addEventListener("touchmove", (e) => {
     if (touchId === null) return;
+
     for (const t of e.changedTouches) {
       if (t.identifier === touchId) {
         onUpdate(false, t.clientX, t.clientY);
@@ -45,6 +44,7 @@ export function setupTouchControls(onUpdate) {
 
   document.addEventListener("touchend", (e) => {
     if (touchId === null) return;
+
     for (const t of e.changedTouches) {
       if (t.identifier === touchId) {
         onUpdate(true, t.clientX, t.clientY);

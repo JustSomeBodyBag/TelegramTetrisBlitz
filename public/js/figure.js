@@ -5,8 +5,12 @@ export function drawFigure(ctx, figure, position, cellSize, pixelCoords = null) 
   let offsetX, offsetY;
 
   if (pixelCoords) {
-    offsetX = pixelCoords.x;
-    offsetY = pixelCoords.y;
+    // Центрировать фигуру вокруг координат пальца/мыши
+    const figureWidth = cols * cellSize;
+    const figureHeight = rows * cellSize;
+
+    offsetX = pixelCoords.x - figureWidth / 2;
+    offsetY = pixelCoords.y - figureHeight / 2;
   } else {
     offsetX = position.col * cellSize;
     offsetY = position.row * cellSize;
