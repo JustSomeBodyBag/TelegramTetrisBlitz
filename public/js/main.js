@@ -64,28 +64,43 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setupMouseControls(
-    canvas,
-    cols,
-    rows,
-    cellSize,
-    () => figure,
-    (x, y, isFinal) => {
-      dragCoords = { x, y };
-      redraw();
-      if (isFinal) fixAndSpawn();
+  canvas,
+  cols,
+  rows,
+  cellSize,
+  () => figure,
+  () => figurePos,
+  (x, y, isFinal = false) => {
+    if (figure && figurePos) {
+      figurePos.col = Math.round(x / cellSize);
+      figurePos.row = Math.round(y / cellSize);
     }
-  );
+        redraw();
+        if (isFinal) fixAndSpawn();
+    }
+    );
 
   setupTouchControls(
-    cols,
-    rows,
-    () => figure,
-    (x, y, isFinal) => {
-      dragCoords = { x, y };
-      redraw();
-      if (isFinal) fixAndSpawn();
+  cols,
+  rows,
+  () => figure,
+  () => figurePos,
+  (x, y, isFinal = false) => {
+    const canvas = document.getElementById("gameCanvas");
+    const rect = canvas.getBoundingClientRect();
+    const localX = x - rect.left;
+    const localY = y - rect.top;
+
+    if (figure && figurePos) {
+      figurePos.col = Math.round(localX / (rect.width / cols));
+      figurePos.row = Math.round(localY / (rect.height / rows));
     }
-  );
+
+    redraw();
+    if (isFinal) fixAndSpawn();
+  }
+);
+
 
   if (spawnButton) {
     spawnButton.addEventListener("click", () => {
