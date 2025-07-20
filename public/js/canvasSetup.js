@@ -1,4 +1,4 @@
-export function setupCanvas(canvas, cols, rows, onResize) {
+export function setupCanvas(canvas, cols, rows) {
   const ctx = canvas.getContext("2d");
   let cellSize = 40;
 
@@ -7,7 +7,7 @@ export function setupCanvas(canvas, cols, rows, onResize) {
     canvas.width = size;
     canvas.height = size;
     cellSize = canvas.width / cols;
-    onResize && onResize();
+    // Убрал вызов onResize, чтобы не было цикла
   }
 
   function drawField() {
@@ -29,7 +29,6 @@ export function setupCanvas(canvas, cols, rows, onResize) {
     }
   }
 
-  window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
 
   return { ctx, cellSize, drawField, resizeCanvas };

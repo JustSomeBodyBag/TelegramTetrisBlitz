@@ -21,19 +21,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let figurePos = { row: 0, col: 2 };
   const field = createField(rows, cols);
 
-  let ctx, cellSize, drawField, resizeCanvas;
+  const { ctx, cellSize, drawField, resizeCanvas } = setupCanvas(canvas, cols, rows);
 
-  // Определяем redraw только после получения drawField
   function redraw() {
     drawField();
     drawFixedBlocks(ctx, field, cellSize);
     drawFigure(ctx, figure, figurePos, cellSize);
   }
 
-  // Сначала вызываем setupCanvas без передачи redraw
-  ({ ctx, cellSize, drawField, resizeCanvas } = setupCanvas(canvas, cols, rows));
-  
-  // Теперь можно привязать resizeCanvas к вызову redraw
+  // Подписка на ресайз, теперь redraw вызывается уже после инициализации drawField
   window.addEventListener("resize", () => {
     resizeCanvas();
     redraw();
