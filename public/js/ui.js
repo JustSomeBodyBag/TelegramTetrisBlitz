@@ -132,19 +132,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const row = Math.floor(y / cellSize);
 
     if (
-      col >= 0 &&
-      col <= cols - figure[0].length &&
-      row >= 0 &&
-      row <= rows - figure.length
+        col >= 0 &&
+        col <= cols - figure[0].length &&
+        row >= 0 &&
+        row <= rows - figure.length
     ) {
-      figurePos = { col, row };
+        figurePos = { col, row };
     }
 
     fixFigureToField();
-    clearFullLines();
+    clearFullLines();  // <-- Добавлено сюда!
     spawnNewFigure();
     redraw();
   });
+
 
   canvas.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
