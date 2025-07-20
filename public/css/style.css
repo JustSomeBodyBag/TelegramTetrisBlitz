@@ -21,12 +21,15 @@ canvas {
   position: fixed;
   top: 0;
   left: 0;
-  width: 320px;      /* обязательно фиксированная ширина */
-  height: 320px;     /* фиксированная высота */
-  pointer-events: none; /* чтобы клики проходили */
+  width: 100vw;
+  height: 100vh;
+  pointer-events: auto;
   z-index: 1000;
-  background-color: transparent; /* прозрачный фон */
+  background-color: transparent;
+  border: none; /* убираем обводку */
 }
+
+
 
 #joystick {
   position: fixed;

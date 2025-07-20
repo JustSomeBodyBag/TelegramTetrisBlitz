@@ -14,53 +14,65 @@ import {
 document.addEventListener("DOMContentLoaded", () => {
   const gameCanvas = document.getElementById("gameCanvas");
   const floatingCanvas = document.getElementById("floatingCanvas");
-  const spawnButton = document.getElementById("spawn-button");
   const menuButton = document.getElementById("menu-button");
+  const spawnButton = document.getElementById("spawn-button");
 
   const rows = 8;
   const cols = 8;
 
   let figure = null;
   let figurePos = { row: 0, col: 2 };
-  let dragCoords = null;
+  let dragCoords = null; // pixel coords for dragging figure
 
-  const field = createField(rows, cols);
-  const {
-    ctx: gameCtx,
-    cellSize,
-    drawField,
-    resizeCanvas,
-  } = setupCanvas(gameCanvas, cols, rows);
+  // Настраиваем канвасы
+  const gameSetup = setupCanvas(gameCanvas, cols, rows);
   const floatingCtx = floatingCanvas.getContext("2d");
 
-  function redraw() {
-    drawField();
-    drawFixedBlocks(gameCtx, field, cellSize);
+  // Устанавливаем floatingCanvas на весь экран
+  function resizeFloatingCanvas() {
+    floatingCanvas.width = window.innerWidth;
+    floatingCanvas.height = window.innerHeight;
+  }
+  resizeFloatingCanvas();
+  window.addEventListener("resize", () => {
+    resizeFloatingCanvas();
+    redraw();
+  });
 
+  // Отрисовка игрового поля и фигур на основном канвасе
+  function redraw() {
+    gameSetup.drawField();
+    drawFixedBlocks(gameSetup.ctx, field, gameSetup.cellSize);
+
+    // Очистим floatingCanvas
     floatingCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
 
     if (figure) {
       if (dragCoords) {
-        drawFigure(floatingCtx, figure, null, cellSize, dragCoords);
+        // Рисуем фигуру в пиксельных координатах на floatingCanvas
+        drawFigure(floatingCtx, figure, null, gameSetup.cellSize, dragCoords);
       } else {
-        drawFigure(gameCtx, figure, figurePos, cellSize);
+        // Рисуем фигуру в фиксированной позиции на gameCanvas
+        drawFigure(gameSetup.ctx, figure, figurePos, gameSetup.cellSize);
       }
     }
   }
 
+  // Создаём игровое поле
+  const field = createField(rows, cols);
+
+  // Фиксируем фигуру на поле и очищаем полные линии
   function fixAndSpawn() {
     if (!figure) return;
 
     if (dragCoords) {
+      // Привязка pixel coords к row/col
       const rect = gameCanvas.getBoundingClientRect();
       const localX = dragCoords.x - rect.left;
       const localY = dragCoords.y - rect.top;
 
-      const col = Math.floor(localX / cellSize);
-      const row = Math.floor(localY / cellSize);
-
-      figurePos.col = Math.max(0, Math.min(cols - figure[0].length, col));
-      figurePos.row = Math.max(0, Math.min(rows - figure.length, row));
+      figurePos.col = Math.max(0, Math.min(cols - figure[0].length, Math.round(localX / gameSetup.cellSize)));
+      figurePos.row = Math.max(0, Math.min(rows - figure.length, Math.round(localY / gameSetup.cellSize)));
 
       dragCoords = null;
     }
@@ -71,42 +83,38 @@ document.addEventListener("DOMContentLoaded", () => {
     redraw();
   }
 
-  setupMouseControls(
-    gameCanvas,
-    cols,
-    rows,
-    cellSize,
-    () => figure,
-    () => figurePos,
-    (isFinal = false, x, y) => {
-      if (x && y) dragCoords = { x, y };
-      else dragCoords = null;
-      redraw();
-      if (isFinal) fixAndSpawn();
-    }
-  );
+  // Обновление позиции фигуры при движении или клике
+  function onUpdate(isFinal, x, y) {
+    if (!figure) return;
 
-  setupTouchControls(
-    cols,
-    rows,
-    () => figure,
-    () => figurePos,
-    (isFinal = false, x, y) => {
-      if (x && y) dragCoords = { x, y };
-      else dragCoords = null;
+    if (isFinal) {
+      dragCoords = { x, y };
+      fixAndSpawn();
+    } else {
+      dragCoords = { x, y };
       redraw();
-      if (isFinal) fixAndSpawn();
     }
-  );
+  }
 
-  spawnButton?.addEventListener("click", () => {
-    figure = [[1], [1], [1], [1]];
+  // Настраиваем управление мышью и тачами на floatingCanvas
+  setupMouseControls(floatingCanvas, onUpdate);
+  setupTouchControls(onUpdate);
+
+  // Спавн фигуры при клике по кнопке
+  spawnButton.addEventListener("click", () => {
+    figure = [
+      [1],
+      [1],
+      [1],
+      [1],
+    ];
     figurePos = { row: 0, col: 2 };
     dragCoords = null;
     redraw();
   });
 
-  menuButton?.addEventListener("click", () => {
+  // Меню Telegram
+  menuButton.addEventListener("click", () => {
     if (window.Telegram?.WebApp?.showPopup) {
       window.Telegram.WebApp.showPopup({
         title: "Меню",
@@ -116,6 +124,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  resizeCanvas();
   redraw();
 });
