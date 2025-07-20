@@ -81,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function onDragStart(event) {
     if (!figure) return;
     isDragging = true;
-    floatingCanvas.style.pointerEvents = "auto";
 
     updateDragCoords(event);
     redraw();
@@ -96,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function onDragEnd(event) {
     if (!isDragging || !figure) return;
     isDragging = false;
-    floatingCanvas.style.pointerEvents = "none";
 
     fixAndSpawn();
   }
