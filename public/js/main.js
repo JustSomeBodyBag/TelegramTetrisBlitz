@@ -22,19 +22,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let figure = null;
   let figurePos = { row: 0, col: 2 };
-  let dragCoords = null; // { x, y } in pixels
+  let dragCoords = null;
   let isDragging = false;
 
   const field = createField(rows, cols);
-  const { ctx, cellSize, drawField, resizeCanvas } = setupCanvas(gameCanvas, cols, rows);
-  const floatingCtx = floatingCanvas.getContext("2d");
+  const { ctx: gameCtx, cellSize, drawField, resizeCanvas } = setupCanvas(gameCanvas, cols, rows);
 
-
+  // Устанавливаем размер floatingCanvas под окно
   function resizeFloatingCanvas() {
     floatingCanvas.width = window.innerWidth;
     floatingCanvas.height = window.innerHeight;
   }
   resizeFloatingCanvas();
+
   window.addEventListener("resize", () => {
     resizeFloatingCanvas();
     resizeCanvas();
@@ -42,17 +42,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function redraw() {
-    ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+    // Рисуем игровое поле и фиксированные блоки на gameCanvas
     drawField();
-    drawFixedBlocks(ctx, field, cellSize);
+    drawFixedBlocks(gameCtx, field, cellSize);
 
+    // Очищаем floatingCanvas и рисуем движущуюся фигуру там
+    const floatingCtx = floatingCanvas.getContext("2d");
     floatingCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
 
     if (figure) {
       if (dragCoords && isDragging) {
+        // Рисуем фигуру по пиксельным координатам dragCoords
         drawFigure(floatingCtx, figure, null, cellSize, dragCoords);
       } else {
-        drawFigure(ctx, figure, figurePos, cellSize);
+        // Рисуем фигуру на игровом поле по сетке
+        drawFigure(floatingCtx, figure, figurePos, cellSize);
       }
     }
   }
@@ -62,11 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (dragCoords) {
       const rect = gameCanvas.getBoundingClientRect();
-      const localX = dragCoords.x - rect.left;
-      const localY = dragCoords.y - rect.top;
+      const localX = dragCoords.x - (floatingCanvas.getBoundingClientRect().left);
+      const localY = dragCoords.y - (floatingCanvas.getBoundingClientRect().top);
 
-      const col = Math.round(localX / cellSize);
-      const row = Math.round(localY / cellSize);
+      // Конвертируем pixel position к игровым клеткам относительно gameCanvas
+      const relativeX = localX - (rect.left - floatingCanvas.getBoundingClientRect().left);
+      const relativeY = localY - (rect.top - floatingCanvas.getBoundingClientRect().top);
+
+      const col = Math.round(relativeX / cellSize);
+      const row = Math.round(relativeY / cellSize);
 
       figurePos.col = Math.max(0, Math.min(cols - figure[0].length, col));
       figurePos.row = Math.max(0, Math.min(rows - figure.length, row));
@@ -80,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
     redraw();
   }
 
-  // Drag handlers:
   function onDragStart(event) {
     if (!figure) return;
     isDragging = true;
@@ -101,9 +108,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateDragCoords(event) {
+    const rect = floatingCanvas.getBoundingClientRect();
     dragCoords = {
-      x: event.clientX,
-      y: event.clientY
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
     };
   }
 
@@ -115,10 +123,9 @@ document.addEventListener("DOMContentLoaded", () => {
       [1],
       [1],
       [1],
-      [1],
+      [1]
     ];
-    figurePos.row = 0;
-    figurePos.col = 2;
+    figurePos = { row: 0, col: 2 };
     dragCoords = null;
     redraw();
   });
@@ -128,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.Telegram.WebApp.showPopup({
         title: "Меню",
         message: "Пауза, настройки, донат",
-        buttons: [{ text: "Закрыть", type: "close" }],
+        buttons: [{ text: "Закрыть", type: "close" }]
       });
     }
   });
