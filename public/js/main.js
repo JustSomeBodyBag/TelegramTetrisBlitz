@@ -13,7 +13,6 @@ import {
 
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("gameCanvas");
-  const joystickZone = document.getElementById("joystick-zone");
   const menuButton = document.getElementById("menu-button");
   const spawnButton = document.getElementById("spawn-button");
 

@@ -43,64 +43,117 @@ export function setupMouseControls(canvas, cols, rows, cellSize, getFigure, getF
 }
 
 export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate) {
-  const joystick = document.getElementById("joystick");
-  let animationFrame = null;
-  let touchStart = null;
-  let velocity = { x: 0, y: 0 };
+  let joystick = null;
+  let touchId = null;
+  let centerX = 0;
+  let centerY = 0;
+  let loopId = null;
 
-  function moveLoop() {
-    const figure = getFigure();
-    const figurePos = getFigurePos();
-    if (!figure || !figurePos) return;
-
-    const speedFactor = 0.08;
-    const maxSpeed = 0.6;
-
-    let dx = velocity.x * speedFactor;
-    let dy = velocity.y * speedFactor;
-
-    dx = Math.max(-maxSpeed, Math.min(maxSpeed, dx));
-    dy = Math.max(-maxSpeed, Math.min(maxSpeed, dy));
-
-    let newCol = figurePos.col + dx;
-    let newRow = figurePos.row + dy;
-
-    newCol = Math.max(0, Math.min(cols - figure[0].length, newCol));
-    newRow = Math.max(0, Math.min(rows - figure.length, newRow));
-
-    figurePos.col = Math.floor(newCol);
-    figurePos.row = Math.floor(newRow);
-
-    onUpdate(false);
-    animationFrame = requestAnimationFrame(moveLoop);
+  function createJoystick(x, y) {
+    joystick = document.createElement("div");
+    joystick.style.position = "fixed";
+    joystick.style.left = `${x - 30}px`;
+    joystick.style.top = `${y - 30}px`;
+    joystick.style.width = "60px";
+    joystick.style.height = "60px";
+    joystick.style.borderRadius = "50%";
+    joystick.style.border = "1px solid #666";
+    joystick.style.background = "rgba(255,255,255,0.05)";
+    joystick.style.zIndex = "1000";
+    document.body.appendChild(joystick);
   }
 
+  function removeJoystick() {
+    if (joystick && joystick.parentNode) {
+      joystick.parentNode.removeChild(joystick);
+    }
+    joystick = null;
+  }
+
+  function startLoop() {
+    if (loopId) return;
+    loopId = requestAnimationFrame(loop);
+  }
+
+  function stopLoop() {
+    if (loopId) cancelAnimationFrame(loopId);
+    loopId = null;
+  }
+
+  function loop() {
+    const figure = getFigure();
+    const figurePos = getFigurePos();
+    if (!figure || !figurePos || !touchId) return;
+
+    const dx = currentX - centerX;
+    const dy = currentY - centerY;
+
+    const threshold = 10;
+    let moved = false;
+
+    const speed = Math.min(1 + Math.max(Math.abs(dx), Math.abs(dy)) / 30, 10);
+    const now = Date.now();
+    if (!loop.lastMove || now - loop.lastMove > (1000 / speed)) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > threshold && figurePos.col < cols - figure[0].length) {
+          figurePos.col++;
+          moved = true;
+        } else if (dx < -threshold && figurePos.col > 0) {
+          figurePos.col--;
+          moved = true;
+        }
+      } else {
+        if (dy > threshold && figurePos.row < rows - figure.length) {
+          figurePos.row++;
+          moved = true;
+        } else if (dy < -threshold && figurePos.row > 0) {
+          figurePos.row--;
+          moved = true;
+        }
+      }
+      if (moved) {
+        loop.lastMove = now;
+        onUpdate(false);
+      }
+    }
+
+    loopId = requestAnimationFrame(loop);
+  }
+
+  let currentX = 0;
+  let currentY = 0;
+
   document.addEventListener("touchstart", (e) => {
-    const touch = e.touches[0];
-    touchStart = { x: touch.clientX, y: touch.clientY };
-    velocity = { x: 0, y: 0 };
-
-    joystick.style.left = `${touch.clientX}px`;
-    joystick.style.top = `${touch.clientY}px`;
-    joystick.style.opacity = "1";
-
-    animationFrame = requestAnimationFrame(moveLoop);
+    if (touchId !== null) return; // only one joystick
+    const touch = e.changedTouches[0];
+    touchId = touch.identifier;
+    centerX = touch.clientX;
+    centerY = touch.clientY;
+    currentX = centerX;
+    currentY = centerY;
+    createJoystick(centerX, centerY);
+    startLoop();
   });
 
   document.addEventListener("touchmove", (e) => {
-    if (!touchStart) return;
-    const touch = e.touches[0];
-    velocity = {
-      x: touch.clientX - touchStart.x,
-      y: touch.clientY - touchStart.y,
-    };
+    for (let t of e.changedTouches) {
+      if (t.identifier === touchId) {
+        currentX = t.clientX;
+        currentY = t.clientY;
+        break;
+      }
+    }
   });
 
-  document.addEventListener("touchend", () => {
-    cancelAnimationFrame(animationFrame);
-    joystick.style.opacity = "0";
-    velocity = { x: 0, y: 0 };
-    touchStart = null;
-    onUpdate(true);
+  document.addEventListener("touchend", (e) => {
+    for (let t of e.changedTouches) {
+      if (t.identifier === touchId) {
+        touchId = null;
+        stopLoop();
+        removeJoystick();
+        onUpdate(true); // финальная фиксация
+        break;
+      }
+    }
   });
 }
