@@ -1,7 +1,15 @@
 import { setupCanvas } from "./canvasSetup.js";
 import { drawFigure } from "./figure.js";
-import { createField, drawFixedBlocks, fixFigureToField, clearFullLines } from "./field.js";
-import { setupMouseControls, setupTouchControls } from "./inputHandlers.js";
+import {
+  createField,
+  drawFixedBlocks,
+  fixFigureToField,
+  clearFullLines
+} from "./field.js";
+import {
+  setupMouseControls,
+  setupTouchControls
+} from "./inputHandlers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const floatingCanvas = document.getElementById("floatingCanvas");
@@ -19,8 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const field = createField(rows, cols);
   const { ctx, cellSize, drawField, resizeCanvas } = setupCanvas(gameCanvas, cols, rows);
+  const floatingCtx = floatingCanvas.getContext("2d");
 
-  // Resize floatingCanvas to cover entire viewport
+
   function resizeFloatingCanvas() {
     floatingCanvas.width = window.innerWidth;
     floatingCanvas.height = window.innerHeight;
@@ -33,13 +42,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function redraw() {
+    ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
     drawField();
     drawFixedBlocks(ctx, field, cellSize);
 
+    floatingCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
+
     if (figure) {
       if (dragCoords && isDragging) {
-        // рисуем фигуру в координатах мыши
-        drawFigure(ctx, figure, null, cellSize, dragCoords);
+        drawFigure(floatingCtx, figure, null, cellSize, dragCoords);
       } else {
         drawFigure(ctx, figure, figurePos, cellSize);
       }
@@ -54,11 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const localX = dragCoords.x - rect.left;
       const localY = dragCoords.y - rect.top;
 
-      const col = Math.floor(localX / cellSize);
-      const row = Math.floor(localY / cellSize);
+      const col = Math.round(localX / cellSize);
+      const row = Math.round(localY / cellSize);
 
-      figurePos.col = Math.min(Math.max(0, col), cols - figure[0].length);
-      figurePos.row = Math.min(Math.max(0, row), rows - figure.length);
+      figurePos.col = Math.max(0, Math.min(cols - figure[0].length, col));
+      figurePos.row = Math.max(0, Math.min(rows - figure.length, row));
 
       dragCoords = null;
     }
@@ -69,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     redraw();
   }
 
+  // Drag handlers:
   function onDragStart(event) {
     if (!figure) return;
     isDragging = true;
@@ -85,14 +97,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function onDragEnd(event) {
     if (!isDragging || !figure) return;
     isDragging = false;
-    updateDragCoords(event);
     fixAndSpawn();
   }
 
   function updateDragCoords(event) {
     dragCoords = {
       x: event.clientX,
-      y: event.clientY,
+      y: event.clientY
     };
   }
 
@@ -106,7 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
       [1],
       [1],
     ];
-    figurePos = { row: 0, col: 2 };
+    figurePos.row = 0;
+    figurePos.col = 2;
     dragCoords = null;
     redraw();
   });

@@ -1,28 +1,33 @@
-export function drawFigure(ctx, figure, position, cellSize, pixelCoords = null) {
-  const rows = figure.length;
-  const cols = figure[0].length;
+export function drawFigure(ctx, figure, position, cellSize, dragCoords) {
+  ctx.fillStyle = "#00bfff";
 
-  let offsetX, offsetY;
+  if (dragCoords) {
+    const offsetX = dragCoords.x - (figure[0].length * cellSize) / 2;
+    const offsetY = dragCoords.y - (figure.length * cellSize) / 2;
 
-  if (pixelCoords) {
-    // Центрировать фигуру вокруг координат пальца/мыши
-    const figureWidth = cols * cellSize;
-    const figureHeight = rows * cellSize;
-
-    offsetX = pixelCoords.x - figureWidth / 2;
-    offsetY = pixelCoords.y - figureHeight / 2;
-  } else {
-    offsetX = position.col * cellSize;
-    offsetY = position.row * cellSize;
-  }
-
-  ctx.fillStyle = "#00ffff";
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (figure[r][c]) {
-        const x = offsetX + c * cellSize;
-        const y = offsetY + r * cellSize;
-        ctx.fillRect(x, y, cellSize, cellSize);
+    for (let row = 0; row < figure.length; row++) {
+      for (let col = 0; col < figure[row].length; col++) {
+        if (figure[row][col]) {
+          ctx.fillRect(
+            offsetX + col * cellSize,
+            offsetY + row * cellSize,
+            cellSize,
+            cellSize
+          );
+        }
+      }
+    }
+  } else if (position) {
+    for (let row = 0; row < figure.length; row++) {
+      for (let col = 0; col < figure[row].length; col++) {
+        if (figure[row][col]) {
+          ctx.fillRect(
+            (position.col + col) * cellSize,
+            (position.row + row) * cellSize,
+            cellSize,
+            cellSize
+          );
+        }
       }
     }
   }

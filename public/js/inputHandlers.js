@@ -22,14 +22,16 @@ export function setupTouchControls(canvas, onDragStart, onDragMove, onDragEnd) {
   let dragging = false;
 
   canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
     dragging = true;
     onDragStart(e.touches[0]);
-  });
+  }, { passive: false });
 
   window.addEventListener("touchmove", (e) => {
     if (!dragging) return;
+    e.preventDefault();
     onDragMove(e.touches[0]);
-  });
+  }, { passive: false });
 
   window.addEventListener("touchend", (e) => {
     if (!dragging) return;
