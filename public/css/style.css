@@ -19,12 +19,13 @@ canvas {
 
 #floatingCanvas {
   position: fixed;
-  pointer-events: none;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 320px;      /* обязательно фиксированная ширина */
+  height: 320px;     /* фиксированная высота */
+  pointer-events: none; /* чтобы клики проходили */
   z-index: 1000;
+  background-color: transparent; /* прозрачный фон */
 }
 
 #joystick {
