@@ -1,15 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
+  const controls = document.getElementById("controls");
 
   const rows = 8;
   const cols = 8;
   const cellSize = 40;
 
-  // Игровое поле: 0 — пусто, 1 — занято
   const field = Array.from({ length: rows }, () => Array(cols).fill(0));
 
-  // Текущая фигура (пример: палка 4x1)
   const figure = [
     [1],
     [1],
@@ -17,9 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     [1],
   ];
 
-  let figurePos = { row: 0, col: 0 };
-  let isDragging = false;
-  let dragOffset = { x: 0, y: 0 };
+  let figurePos = { row: 0, col: 2 };
 
   function drawField() {
     ctx.fillStyle = "#18222d";
@@ -28,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.strokeStyle = "#2c3e50";
     ctx.lineWidth = 1;
 
-    // Отрисовка фиксированных клеток
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         if (field[r][c]) {
@@ -43,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function drawFigure(pos) {
-    ctx.fillStyle = "#ff6347"; // цвет фигуры
+    ctx.fillStyle = "#ff6347";
     for (let r = 0; r < figure.length; r++) {
       for (let c = 0; c < figure[r].length; c++) {
         if (figure[r][c]) {
@@ -88,76 +84,45 @@ document.addEventListener("DOMContentLoaded", () => {
     drawFigure(figurePos);
   }
 
-  // Инициалный рендер
   redraw();
 
-  // Обработка drag & drop (desktop + mobile)
-  function getCellFromCoords(x, y) {
-    return {
-      col: Math.floor(x / cellSize),
-      row: Math.floor(y / cellSize),
-    };
-  }
+  // 👇 Управление свайпом
+  let startX = 0;
+  let startY = 0;
 
-  canvas.addEventListener("mousedown", startDrag);
-  canvas.addEventListener("touchstart", startDrag);
+  controls.addEventListener("touchstart", e => {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+  });
 
-  function startDrag(e) {
-    e.preventDefault();
-    isDragging = true;
+  controls.addEventListener("touchend", e => {
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
 
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    dragOffset.x = clientX - (figurePos.col * cellSize);
-    dragOffset.y = clientY - (figurePos.row * cellSize);
-
-    window.addEventListener("mousemove", onDrag);
-    window.addEventListener("touchmove", onDrag);
-    window.addEventListener("mouseup", endDrag);
-    window.addEventListener("touchend", endDrag);
-  }
-
-  function onDrag(e) {
-    if (!isDragging) return;
-    e.preventDefault();
-
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    let col = Math.round((clientX - rect.left - dragOffset.x) / cellSize);
-    let row = Math.round((clientY - rect.top - dragOffset.y) / cellSize);
-
-    // Ограничения по границам поля
-    col = Math.min(Math.max(col, 0), cols - figure[0].length);
-    row = Math.min(Math.max(row, 0), rows - figure.length);
-
-    figurePos = { row, col };
-    redraw();
-  }
-
-  function endDrag(e) {
-    if (!isDragging) return;
-    e.preventDefault();
-
-    // Фиксируем фигуру на поле
-    fixFigure(figure, figurePos);
-    const cleared = clearFullLines();
-    if (cleared) {
-      console.log(`Очистили ${cleared} линий`);
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // горизонтальный свайп
+      if (dx > 20 && figurePos.col < cols - figure[0].length) {
+        figurePos.col += 1;
+      } else if (dx < -20 && figurePos.col > 0) {
+        figurePos.col -= 1;
+      }
+    } else {
+      // вертикальный свайп
+      if (dy > 20 && figurePos.row < rows - figure.length) {
+        figurePos.row += 1;
+      }
     }
 
-    // Сброс фигуры в начальную позицию (например, верхний левый угол)
-    figurePos = { row: 0, col: 0 };
-
     redraw();
+  });
 
-    isDragging = false;
-    window.removeEventListener("mousemove", onDrag);
-    window.removeEventListener("touchmove", onDrag);
-    window.removeEventListener("mouseup", endDrag);
-    window.removeEventListener("touchend", endDrag);
-  }
+  // 👇 Фиксация по кнопке (или автоматически, если нужно)
+  document.getElementById("menu-button").addEventListener("click", () => {
+    fixFigure(figure, figurePos);
+    clearFullLines();
+    figurePos = { row: 0, col: 2 };
+    redraw();
+  });
 });
