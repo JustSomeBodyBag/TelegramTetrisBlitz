@@ -124,20 +124,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const dy = touch.clientY - startY;
 
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Горизонтальное движение
+        // Горизонтальное
         if (dx > 20 && figurePos.col < cols - figure[0].length) {
-          figurePos.col++;
+            figurePos.col++;
+            startX = touch.clientX;
         } else if (dx < -20 && figurePos.col > 0) {
-          figurePos.col--;
+            figurePos.col--;
+            startX = touch.clientX;
         }
-        startX = touch.clientX;
-      } else {
-        // Вертикальное движение
+        } else {
+        // Вертикальное
         if (dy > 20 && figurePos.row < rows - figure.length) {
-          figurePos.row++;
-          startY = touch.clientY;
+            figurePos.row++;
+            startY = touch.clientY;
+        } else if (dy < -20 && figurePos.row > 0) {
+            figurePos.row--;
+            startY = touch.clientY;
         }
-      }
+       }
+
 
       lastMove = now;
       redraw();
