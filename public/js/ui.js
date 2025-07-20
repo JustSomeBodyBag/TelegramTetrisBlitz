@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (field[r].every(cell => cell === 1)) {
       field.splice(r, 1); // удалить строку
       field.unshift(new Array(cols).fill(0)); // добавить сверху пустую
-      r++; // проверить текущий индекс ещё раз, так как сдвинулись строки вниз
+      r++; // проверить этот индекс снова, т.к. строки сместились вниз
     }
   }
 
@@ -111,15 +111,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     if (fullColumn) {
-      // Сдвигаем все элементы столбца вниз (аналогично удалению столбца)
-        for (let r = rows - 1; r >= 1; r--) {
+      // Сдвигаем все клетки столбца вниз на 1
+      for (let r = rows - 1; r > 0; r--) {
         field[r][c] = field[r - 1][c];
-        }
-        field[0][c] = 0; // сверху пусто
-        c--; // проверить этот столбец снова, если сдвинулись
-        }
+      }
+      field[0][c] = 0; // верхняя клетка теперь пустая
+      c--; // повторно проверить этот столбец, так как он изменился
     }
   }
+}
+
 
   function spawnNewFigure() {
     figurePos = { row: 0, col: 2 };
