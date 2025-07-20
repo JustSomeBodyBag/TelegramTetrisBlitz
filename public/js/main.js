@@ -19,23 +19,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const rows = 8;
   const cols = 8;
+
   let figure = null;
-  let figurePos = { row: 0, col: 0 };
+  let figurePos = { row: 0, col: 2 };
   let dragCoords = null;
 
   const field = createField(rows, cols);
-  const { ctx: gameCtx, cellSize, drawField, resizeCanvas } = setupCanvas(gameCanvas, cols, rows);
+  const {
+    ctx: gameCtx,
+    cellSize,
+    drawField,
+    resizeCanvas,
+  } = setupCanvas(gameCanvas, cols, rows);
   const floatingCtx = floatingCanvas.getContext("2d");
 
   function redraw() {
-    // Основное поле
     drawField();
     drawFixedBlocks(gameCtx, field, cellSize);
 
-    // Очистка "верхнего" холста
     floatingCtx.clearRect(0, 0, floatingCanvas.width, floatingCanvas.height);
 
-    // Рисуем фигуру либо на поле, либо на floatingCanvas
     if (figure) {
       if (dragCoords) {
         drawFigure(floatingCtx, figure, null, cellSize, dragCoords);
@@ -50,11 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (dragCoords) {
       const rect = gameCanvas.getBoundingClientRect();
-      const x = dragCoords.x - rect.left;
-      const y = dragCoords.y - rect.top;
-      const col = Math.floor(x / cellSize);
-      const row = Math.floor(y / cellSize);
-      figurePos = { row, col };
+      const localX = dragCoords.x - rect.left;
+      const localY = dragCoords.y - rect.top;
+
+      const col = Math.floor(localX / cellSize);
+      const row = Math.floor(localY / cellSize);
+
+      figurePos.col = Math.max(0, Math.min(cols - figure[0].length, col));
+      figurePos.row = Math.max(0, Math.min(rows - figure.length, row));
+
       dragCoords = null;
     }
 
@@ -64,49 +71,49 @@ document.addEventListener("DOMContentLoaded", () => {
     redraw();
   }
 
-  // Установка событий управления
-  setupMouseControls((isFinal, x, y) => {
-    if (!figure) return;
-    dragCoords = { x, y };
-    redraw();
-    if (isFinal) fixAndSpawn();
-  });
+  setupMouseControls(
+    gameCanvas,
+    cols,
+    rows,
+    cellSize,
+    () => figure,
+    () => figurePos,
+    (isFinal = false, x, y) => {
+      if (x && y) dragCoords = { x, y };
+      else dragCoords = null;
+      redraw();
+      if (isFinal) fixAndSpawn();
+    }
+  );
 
-  setupTouchControls((isFinal, x, y) => {
-    if (!figure) return;
-    dragCoords = { x, y };
-    redraw();
-    if (isFinal) fixAndSpawn();
-  });
+  setupTouchControls(
+    cols,
+    rows,
+    () => figure,
+    () => figurePos,
+    (isFinal = false, x, y) => {
+      if (x && y) dragCoords = { x, y };
+      else dragCoords = null;
+      redraw();
+      if (isFinal) fixAndSpawn();
+    }
+  );
 
-  // Создание фигуры
-  spawnButton.addEventListener("click", () => {
-    figure = [
-      [1],
-      [1],
-      [1],
-      [1],
-    ];
-    figurePos = { row: 0, col: 0 };
+  spawnButton?.addEventListener("click", () => {
+    figure = [[1], [1], [1], [1]];
+    figurePos = { row: 0, col: 2 };
     dragCoords = null;
     redraw();
   });
 
-  // Меню
-  menuButton.addEventListener("click", () => {
+  menuButton?.addEventListener("click", () => {
     if (window.Telegram?.WebApp?.showPopup) {
       window.Telegram.WebApp.showPopup({
         title: "Меню",
         message: "Пауза, настройки, донат",
-        buttons: [{ text: "Закрыть", type: "close" }]
+        buttons: [{ text: "Закрыть", type: "close" }],
       });
     }
-  });
-
-  // Адаптивность
-  window.addEventListener("resize", () => {
-    resizeCanvas();
-    redraw();
   });
 
   resizeCanvas();
