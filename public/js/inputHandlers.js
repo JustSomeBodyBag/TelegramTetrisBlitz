@@ -1,33 +1,39 @@
 export function setupMouseControls(canvas, cols, rows, cellSize, getFigure, getFigurePos, onUpdate) {
   let isDragging = false;
+  let dragX = 0;
+  let dragY = 0;
 
   canvas.addEventListener("mousedown", (e) => {
     const figure = getFigure();
     if (!figure) return;
     isDragging = true;
-    moveFigureWithMouse(e);
-  });
-
-  canvas.addEventListener("mouseup", () => {
-    isDragging = false;
-    onUpdate(true); // фиксируем
+    const rect = canvas.getBoundingClientRect();
+    dragX = e.clientX - rect.left;
+    dragY = e.clientY - rect.top;
+    onUpdate(dragX, dragY, false);
   });
 
   canvas.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
-    moveFigureWithMouse(e);
+    const rect = canvas.getBoundingClientRect();
+    dragX = e.clientX - rect.left;
+    dragY = e.clientY - rect.top;
+    onUpdate(dragX, dragY, false);
   });
 
-  function moveFigureWithMouse(e) {
+  canvas.addEventListener("mouseup", () => {
+    if (!isDragging) return;
+    isDragging = false;
+    snapToGrid();
+  });
+
+  function snapToGrid() {
     const figure = getFigure();
     const figurePos = getFigurePos();
     if (!figure || !figurePos) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const col = Math.floor(x / cellSize);
-    const row = Math.floor(y / cellSize);
+    const col = Math.round(dragX / cellSize);
+    const row = Math.round(dragY / cellSize);
 
     if (
       col >= 0 &&
@@ -37,19 +43,18 @@ export function setupMouseControls(canvas, cols, rows, cellSize, getFigure, getF
     ) {
       figurePos.col = col;
       figurePos.row = row;
-      onUpdate(false); // обновление без фиксации
     }
+
+    onUpdate(dragX, dragY, true);
   }
 }
 
+
 export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate) {
-  let joystick = null;
   let touchId = null;
-  let centerX = 0;
-  let centerY = 0;
-  let loopId = null;
-  let currentX = 0;
-  let currentY = 0;
+  let dragX = 0;
+  let dragY = 0;
+  let joystick = null;
 
   function createJoystick(x, y) {
     joystick = document.createElement("div");
@@ -73,76 +78,23 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
     joystick = null;
   }
 
-  function startLoop() {
-    if (loopId) return;
-    loop();
-  }
-
-  function stopLoop() {
-    if (loopId) cancelAnimationFrame(loopId);
-    loopId = null;
-  }
-
-  function loop() {
-    const figure = getFigure();
-    const figurePos = getFigurePos();
-    if (!figure || !figurePos || touchId === null) return;
-
-    const dx = currentX - centerX;
-    const dy = currentY - centerY;
-    const threshold = 10;
-
-    const speed = Math.min(1 + Math.max(Math.abs(dx), Math.abs(dy)) / 30, 10);
-    const now = Date.now();
-
-    if (!loop.lastMove || now - loop.lastMove > (1000 / speed)) {
-      let moved = false;
-
-      if (Math.abs(dx) > Math.abs(dy)) {
-        if (dx > threshold && figurePos.col < cols - figure[0].length) {
-          figurePos.col++;
-          moved = true;
-        } else if (dx < -threshold && figurePos.col > 0) {
-          figurePos.col--;
-          moved = true;
-        }
-      } else {
-        if (dy > threshold && figurePos.row < rows - figure.length) {
-          figurePos.row++;
-          moved = true;
-        } else if (dy < -threshold && figurePos.row > 0) {
-          figurePos.row--;
-          moved = true;
-        }
-      }
-
-      if (moved) {
-        loop.lastMove = now;
-        onUpdate(false);
-      }
-    }
-
-    loopId = requestAnimationFrame(loop);
-  }
-
   document.addEventListener("touchstart", (e) => {
     if (touchId !== null) return;
 
     const touch = e.changedTouches[0];
     touchId = touch.identifier;
-    centerX = touch.clientX;
-    centerY = touch.clientY;
-    currentX = centerX;
-    currentY = centerY;
-    createJoystick(centerX, centerY);
-    startLoop();
+    dragX = touch.clientX;
+    dragY = touch.clientY;
+    createJoystick(dragX, dragY);
+    onUpdate(dragX, dragY, false);
   }, { passive: false });
 
   document.addEventListener("touchmove", (e) => {
     for (const t of e.changedTouches) {
       if (t.identifier === touchId) {
-        currentX = t.clientX;
-        currentY = t.clientY;
+        dragX = t.clientX;
+        dragY = t.clientY;
+        onUpdate(dragX, dragY, false);
         break;
       }
     }
@@ -152,11 +104,36 @@ export function setupTouchControls(cols, rows, getFigure, getFigurePos, onUpdate
     for (const t of e.changedTouches) {
       if (t.identifier === touchId) {
         touchId = null;
-        stopLoop();
+        snapToGrid();
         removeJoystick();
-        onUpdate(true);
         break;
       }
     }
   }, { passive: false });
+
+  function snapToGrid() {
+    const figure = getFigure();
+    const figurePos = getFigurePos();
+    if (!figure || !figurePos) return;
+
+    const canvas = document.getElementById("gameCanvas");
+    const rect = canvas.getBoundingClientRect();
+    const localX = dragX - rect.left;
+    const localY = dragY - rect.top;
+
+    const col = Math.round(localX / (rect.width / cols));
+    const row = Math.round(localY / (rect.height / rows));
+
+    if (
+      col >= 0 &&
+      row >= 0 &&
+      col <= cols - figure[0].length &&
+      row <= rows - figure.length
+    ) {
+      figurePos.col = col;
+      figurePos.row = row;
+    }
+
+    onUpdate(true);
+  }
 }

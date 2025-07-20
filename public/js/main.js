@@ -21,22 +21,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let figure = null;
   let figurePos = { row: 0, col: 2 };
-  const field = createField(rows, cols);
+  let dragCoords = null; // { x, y } — реальные пиксели
 
+  const field = createField(rows, cols);
   const { ctx, cellSize, drawField } = setupCanvas(canvas, cols, rows, redraw);
 
   function redraw() {
     drawField();
     drawFixedBlocks(ctx, field, cellSize);
+
     if (figure) {
-      drawFigure(ctx, figure, figurePos, cellSize);
+      if (dragCoords) {
+        drawFigure(ctx, figure, null, cellSize, dragCoords);
+      } else {
+        drawFigure(ctx, figure, figurePos, cellSize);
+      }
     }
   }
 
   function fixAndSpawn() {
     if (!figure) return;
+
+    // Привязка dragCoords → row/col
+    if (dragCoords) {
+      const rect = canvas.getBoundingClientRect();
+      const localX = dragCoords.x - rect.left;
+      const localY = dragCoords.y - rect.top;
+
+      const col = Math.round(localX / cellSize);
+      const row = Math.round(localY / cellSize);
+
+      figurePos.col = Math.max(0, Math.min(cols - figure[0].length, col));
+      figurePos.row = Math.max(0, Math.min(rows - figure.length, row));
+
+      dragCoords = null;
+    }
+
     fixFigureToField(field, figure, figurePos);
-    clearFullLines(field); // можешь заменить на clearFullLines
+    clearFullLines(field);
     figure = null;
     redraw();
   }
@@ -47,8 +69,8 @@ document.addEventListener("DOMContentLoaded", () => {
     rows,
     cellSize,
     () => figure,
-    () => figurePos,
-    (isFinal = false) => {
+    (x, y, isFinal) => {
+      dragCoords = { x, y };
       redraw();
       if (isFinal) fixAndSpawn();
     }
@@ -58,10 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
     cols,
     rows,
     () => figure,
-    () => figurePos,
-    (isFinal = false) => {
-        redraw();
-        if (isFinal) fixAndSpawn();
+    (x, y, isFinal) => {
+      dragCoords = { x, y };
+      redraw();
+      if (isFinal) fixAndSpawn();
     }
   );
 
@@ -75,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
       figurePos.row = 0;
       figurePos.col = 2;
+      dragCoords = null;
       redraw();
     });
   }
