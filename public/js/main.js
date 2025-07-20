@@ -38,9 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function fixAndSpawn() {
     fixFigureToField(field, figure, figurePos);
     clearFullRows(field);
-    figurePos = { row: 0, col: 2 };
+    figurePos.row = 0;
+    figurePos.col = 2;
     redraw();
   }
+
 
   setupMouseControls(canvas, cols, rows, cellSize, figure, figurePos, fixAndSpawn);
   setupTouchControls(joystickZone, cols, rows, figure, figurePos, (isFinal = false) => {
