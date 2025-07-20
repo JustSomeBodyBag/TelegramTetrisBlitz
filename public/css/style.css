@@ -23,12 +23,11 @@ canvas {
   left: 0;
   width: 100vw;
   height: 100vh;
-  pointer-events: auto;
+  pointer-events: none;  /* ! Важно — чтобы не блокировал клики */
   z-index: 1000;
   background-color: transparent;
-  border: none; /* убираем обводку */
+  border: none;
 }
-
 
 
 #joystick {

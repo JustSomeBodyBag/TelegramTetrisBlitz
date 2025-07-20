@@ -1,44 +1,39 @@
-export function setupMouseControls(canvas, cols, rows, cellSize, getFigure, getFigurePos, onEnd) {
-  let isDragging = false;
+export function setupMouseControls(canvas, onDragStart, onDragMove, onDragEnd) {
+  let dragging = false;
 
   canvas.addEventListener("mousedown", (e) => {
-    if (!getFigure()) return;
-    isDragging = true;
-    onEnd(false, e.clientX, e.clientY);
+    dragging = true;
+    onDragStart(e);
   });
 
   window.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    onEnd(false, e.clientX, e.clientY);
+    if (!dragging) return;
+    onDragMove(e);
   });
 
   window.addEventListener("mouseup", (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    onEnd(true, e.clientX, e.clientY);
+    if (!dragging) return;
+    dragging = false;
+    onDragEnd(e);
   });
 }
 
-export function setupTouchControls(cols, rows, getFigure, getFigurePos, onEnd) {
-  let isTouching = false;
+export function setupTouchControls(canvas, onDragStart, onDragMove, onDragEnd) {
+  let dragging = false;
 
-  window.addEventListener("touchstart", (e) => {
-    if (!getFigure()) return;
-    isTouching = true;
-    const touch = e.touches[0];
-    onEnd(false, touch.clientX, touch.clientY);
+  canvas.addEventListener("touchstart", (e) => {
+    dragging = true;
+    onDragStart(e.touches[0]);
   });
 
   window.addEventListener("touchmove", (e) => {
-    if (!isTouching) return;
-    const touch = e.touches[0];
-    onEnd(false, touch.clientX, touch.clientY);
+    if (!dragging) return;
+    onDragMove(e.touches[0]);
   });
 
   window.addEventListener("touchend", (e) => {
-    if (!isTouching) return;
-    isTouching = false;
-    const touch = e.changedTouches[0];
-    onEnd(true, touch.clientX, touch.clientY);
+    if (!dragging) return;
+    dragging = false;
+    onDragEnd(e);
   });
 }
