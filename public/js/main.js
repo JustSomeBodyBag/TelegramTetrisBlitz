@@ -1,15 +1,7 @@
 import { setupCanvas } from "./canvasSetup.js";
 import { drawFigure } from "./figure.js";
-import {
-  createField,
-  drawFixedBlocks,
-  fixFigureToField,
-  clearFullLines
-} from "./field.js";
-import {
-  setupMouseControls,
-  setupTouchControls
-} from "./inputHandlers.js";
+import { createField, drawFixedBlocks, fixFigureToField, clearFullLines } from "./field.js";
+import { setupMouseControls, setupTouchControls } from "./inputHandlers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const floatingCanvas = document.getElementById("floatingCanvas");
@@ -28,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const field = createField(rows, cols);
   const { ctx, cellSize, drawField, resizeCanvas } = setupCanvas(gameCanvas, cols, rows);
 
-  // Important: floatingCanvas size should cover viewport:
+  // Resize floatingCanvas to cover entire viewport
   function resizeFloatingCanvas() {
     floatingCanvas.width = window.innerWidth;
     floatingCanvas.height = window.innerHeight;
@@ -46,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (figure) {
       if (dragCoords && isDragging) {
+        // рисуем фигуру в координатах мыши
         drawFigure(ctx, figure, null, cellSize, dragCoords);
       } else {
         drawFigure(ctx, figure, figurePos, cellSize);
@@ -61,11 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const localX = dragCoords.x - rect.left;
       const localY = dragCoords.y - rect.top;
 
-      const col = Math.round(localX / cellSize);
-      const row = Math.round(localY / cellSize);
+      const col = Math.floor(localX / cellSize);
+      const row = Math.floor(localY / cellSize);
 
-      figurePos.col = Math.max(0, Math.min(cols - figure[0].length, col));
-      figurePos.row = Math.max(0, Math.min(rows - figure.length, row));
+      figurePos.col = Math.min(Math.max(0, col), cols - figure[0].length);
+      figurePos.row = Math.min(Math.max(0, row), rows - figure.length);
 
       dragCoords = null;
     }
@@ -76,12 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
     redraw();
   }
 
-  // Callbacks for drag events:
-
   function onDragStart(event) {
     if (!figure) return;
     isDragging = true;
-
     updateDragCoords(event);
     redraw();
   }
@@ -95,22 +85,20 @@ document.addEventListener("DOMContentLoaded", () => {
   function onDragEnd(event) {
     if (!isDragging || !figure) return;
     isDragging = false;
-
+    updateDragCoords(event);
     fixAndSpawn();
   }
 
   function updateDragCoords(event) {
     dragCoords = {
       x: event.clientX,
-      y: event.clientY
+      y: event.clientY,
     };
   }
 
-  // Setup controls on floatingCanvas (which covers entire viewport)
   setupMouseControls(floatingCanvas, onDragStart, onDragMove, onDragEnd);
   setupTouchControls(floatingCanvas, onDragStart, onDragMove, onDragEnd);
 
-  // Spawn button
   spawnButton.addEventListener("click", () => {
     figure = [
       [1],
@@ -118,13 +106,11 @@ document.addEventListener("DOMContentLoaded", () => {
       [1],
       [1],
     ];
-    figurePos.row = 0;
-    figurePos.col = 2;
+    figurePos = { row: 0, col: 2 };
     dragCoords = null;
     redraw();
   });
 
-  // Menu button
   menuButton.addEventListener("click", () => {
     if (window.Telegram?.WebApp?.showPopup) {
       window.Telegram.WebApp.showPopup({
