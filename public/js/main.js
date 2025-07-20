@@ -1,3 +1,17 @@
+import { setupCanvas } from './canvasSetup.js';
+import { drawFigure } from './figure.js';
+import {
+  createField,
+  drawFixedBlocks,
+  fixFigureToField,
+  clearFullLines
+} from './field.js';
+import {
+  setupMouseControls,
+  setupTouchControls
+} from './inputHandlers.js';
+
+
 document.addEventListener("DOMContentLoaded", () => {
   // элементы DOM
   const floatingCanvas = document.getElementById("floatingCanvas");
