@@ -1,7 +1,15 @@
 import { setupCanvas } from "./canvasSetup.js";
 import { drawFigure } from "./figure.js";
-import { createField, drawFixedBlocks, fixFigureToField, clearFullRows } from "./field.js";
-import { setupMouseControls, setupTouchControls } from "./inputHandlers.js";
+import {
+  createField,
+  drawFixedBlocks,
+  fixFigureToField,
+  clearFullRows
+} from "./field.js";
+import {
+  setupMouseControls,
+  setupTouchControls
+} from "./inputHandlers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("gameCanvas");
@@ -29,16 +37,35 @@ document.addEventListener("DOMContentLoaded", () => {
   function fixAndSpawn() {
     if (!figure) return;
     fixFigureToField(field, figure, figurePos);
-    clearFullRows(field);
+    clearFullRows(field); // можешь заменить на clearFullLines
     figure = null;
     redraw();
   }
 
-  setupMouseControls(canvas, cols, rows, cellSize, () => figure, () => figurePos, fixAndSpawn);
-  setupTouchControls(joystickZone, cols, rows, () => figure, () => figurePos, (isFinal = false) => {
-    redraw();
-    if (isFinal) fixAndSpawn();
-  });
+  setupMouseControls(
+    canvas,
+    cols,
+    rows,
+    cellSize,
+    () => figure,
+    () => figurePos,
+    (isFinal = false) => {
+      redraw();
+      if (isFinal) fixAndSpawn();
+    }
+  );
+
+  setupTouchControls(
+    joystickZone,
+    cols,
+    rows,
+    () => figure,
+    () => figurePos,
+    (isFinal = false) => {
+      redraw();
+      if (isFinal) fixAndSpawn();
+    }
+  );
 
   if (spawnButton) {
     spawnButton.addEventListener("click", () => {

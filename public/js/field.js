@@ -28,17 +28,17 @@ export function fixFigureToField(field, figure, figurePos) {
   }
 }
 
-export function clearFullRows(field) {
+// ✅ Просто обнуляет строки, если они заполнены
+function clearFullRows(field) {
   for (let r = 0; r < field.length; r++) {
     if (field[r].every(cell => cell === 1)) {
-      for (let c = 0; c < field[r].length; c++) {
-        field[r][c] = 0;
-      }
+      field[r] = field[r].map(() => 0);
     }
   }
 }
 
-export function clearFullColumns(field) {
+// ✅ Просто обнуляет столбцы, если они заполнены
+function clearFullColumns(field) {
   const rows = field.length;
   const cols = field[0].length;
 
@@ -58,7 +58,7 @@ export function clearFullColumns(field) {
   }
 }
 
-// Обобщенная функция очистки линий и столбцов
+// ✅ Объединённая функция очистки
 export function clearFullLines(field) {
   clearFullRows(field);
   clearFullColumns(field);
