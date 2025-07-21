@@ -8,7 +8,7 @@ export function setupMouseControls(canvas, onDragStart, onDragMove, onDragEnd) {
 
   window.addEventListener("mousemove", (e) => {
     if (!dragging) return;
-    onDragMove(e);
+    onDragMove(e, { isTouch: false });  // <-- мышь
   });
 
   window.addEventListener("mouseup", (e) => {
@@ -30,7 +30,7 @@ export function setupTouchControls(canvas, onDragStart, onDragMove, onDragEnd) {
   window.addEventListener("touchmove", (e) => {
     if (!dragging) return;
     e.preventDefault();
-    onDragMove(e.touches[0]);
+    onDragMove(e.touches[0], { isTouch: true });  // <-- тач
   }, { passive: false });
 
   window.addEventListener("touchend", (e) => {

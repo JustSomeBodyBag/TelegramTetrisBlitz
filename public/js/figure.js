@@ -1,36 +1,34 @@
-export function drawFigure(ctx, figureObj, pos, cellSize, offset = { x: 0, y: 0 }) {
-  if (!figureObj) return;
+export function drawFigure(ctx, figure, gridPos, cellSize, pixelPos = null, options = {}) {
+  const scale = options.scale ?? 1;
+  const offsetX = options.offsetX ?? 0;
+  const offsetY = options.offsetY ?? 0;
 
-  const figure = figureObj.shape; 
-  const color = figureObj.color || "#66aaff";
-
-  const baseX = offset.x + (pos ? pos.col * cellSize : 0);
-  const baseY = offset.y + (pos ? pos.row * cellSize : 0);
+  const shape = figure.shape;
+  const color = figure.color;
 
   ctx.fillStyle = color;
-  ctx.strokeStyle = darkenColor(color, 0.3); 
 
-  for (let r = 0; r < figure.length; r++) {
-    for (let c = 0; c < figure[r].length; c++) {
-      if (figure[r][c]) {
-        const x = baseX + c * cellSize;
-        const y = baseY + r * cellSize;
+  for (let row = 0; row < shape.length; row++) {
+    for (let col = 0; col < shape[row].length; col++) {
+      if (!shape[row][col]) continue;
 
-        ctx.fillRect(x, y, cellSize, cellSize);
+      let x, y;
 
-
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(x + 1, y + 1);
-        ctx.lineTo(x + cellSize - 1, y + 1);
-        ctx.lineTo(x + cellSize - 1, y + cellSize - 1);
-        ctx.lineTo(x + 1, y + cellSize - 1);
-        ctx.closePath();
-        ctx.stroke();
+      if (pixelPos) {
+        x = pixelPos.x + (col * cellSize * scale) + offsetX;
+        y = pixelPos.y + (row * cellSize * scale) + offsetY;
+      } else if (gridPos) {
+        x = gridPos.col * cellSize + col * cellSize;
+        y = gridPos.row * cellSize + row * cellSize;
+      } else {
+        continue;
       }
+
+      ctx.fillRect(x, y, cellSize * scale, cellSize * scale);
     }
   }
 }
+
 
 function darkenColor(hexColor, amount = 0.2) {
   let col = hexColor.startsWith("#") ? hexColor.slice(1) : hexColor;
