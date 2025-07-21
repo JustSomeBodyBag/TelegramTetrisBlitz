@@ -1,0 +1,45 @@
+
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# IDE и редакторы
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Локальные настройки
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Кеш и временные файлы
+.cache/
+.temp/
+dist/
+build/
+out/
+
+# Дополнительно (если используете)
+*.log
+logs/
+debug/
+
+# Исключение папки public, если она генерируется при сборке
+# (раскомментируйте, если public/ создаётся автоматически)
+# public/
+
+# Исключение папки assets, если она генерируется
+# public/assets/

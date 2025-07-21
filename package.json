@@ -1,0 +1,29 @@
+{
+  "name": "telegram-tetris-blitz",
+  "version": "0.1.0",
+  "description": "Минималистичная игра Tetris-like для Telegram WebApp с интеграцией платежей, авторизации и таблицей рекордов",
+  "main": "public/js/main.js",
+  "scripts": {
+    "start": "live-server public --open=./index.html",
+    "lint": "eslint public/js/**/*.js",
+    "lint:fix": "eslint public/js/**/*.js --fix",
+    "format": "prettier --write \"public/**/*.{js,css,html}\"",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "tetris",
+    "telegram",
+    "webapp",
+    "game",
+    "canvas"
+  ],
+  "author": "JustSomeBodyBag",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.4",
+    "live-server": "^1.2.2",
+    "prettier": "^3.0.0"
+  }
+}
