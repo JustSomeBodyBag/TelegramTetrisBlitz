@@ -1,37 +1,38 @@
-#Pre-Alva version v 0.0.3
+# Telegram Tetris Blitz
 
-# 🎮 Telegram Tetris Blitz
 
-A minimalist Tetris-inspired puzzle game built for Telegram WebApp.  
-**Drag, drop, and clear lines in this fast-paced arcade challenge!**
+![Firs stage of UI](preAlfascreenshot.jpg)
 
 ---
 
-## 🔍 Features
+## English 🇺🇸
 
-- **Telegram-Native** – Seamless auth via `WebApp.initData`, in-app payments, and social sharing  
-- **Mobile-First** – Touch-friendly controls (drag/drop), desktop hotkeys (1/2/3 for pieces)  
-- **No-Frills Gameplay** – Shapes don’t rotate (unlike classic Tetris), but combos and daily quests keep it addictive  
-- **Sleek UI** – Dark theme matching Telegram’s design (`#18222d` background, flat-colored shapes)
+**Telegram Tetris Blitz** (pre-Alpha v0.0.3) is a minimalist and fast Tetris game designed for Telegram WebApp.
 
----
+### Features
 
-## 🛠️ Tech Stack
+- Modern HTML5 Canvas interface  
+- Touch-friendly controls with dynamic drag sensitivity  
+- Fast and intuitive gameplay  
+- Compatible with Telegram WebApp environment  
 
-- HTML5 Canvas  
-- Vanilla JavaScript  
-- Telegram WebApp API  
-- CSS3
+### Current status
 
----
-
-## 🚀 Try It
-
-- **Demo**: https://telegram-tetris-blitz.vercel.app/
-- [**Telegram Bot**]: (_Coming soon_)
+Pre-Alpha v0.0.3 — early development stage, bugs and API changes possible.
 
 ---
 
-## 📌 Tags
+## Русский 🇷🇺
 
-`#Telegram` `#WebApp` `#PuzzleGame` `#JavaScript` `#Canvas` `#IndieGame` `#Minimalist`
+**Telegram Tetris Blitz** (pre-Alpha v0.0.3) — минималистичная и быстрая игра Тетрис, созданная для Telegram WebApp.
+
+### Особенности
+
+- Современный интерфейс на HTML5 Canvas  
+- Управление, удобное для сенсорных устройств с динамической чувствительностью перетаскивания  
+- Быстрый и интуитивно понятный игровой процесс  
+- Совместимость с Telegram WebApp  
+
+### Текущий статус
+
+Pre-Alpha v0.0.3 — ранняя стадия разработки, возможны баги и изменения API.
