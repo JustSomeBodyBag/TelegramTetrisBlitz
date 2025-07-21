@@ -1,19 +1,32 @@
 import { setupCanvas } from './canvasSetup.js';
 import { FIGURES } from './figures.js';
-import {
-  createField
-} from './field.js';
+import { createField, doesFigureFit } from './field.js';
 import {
   initializeDragHandlers,
   setTouchSensitivity
 } from './dragHandler.js';
 import { redrawScene } from './redraw.js';
+import { chooseSmartFigure } from './randomGenerator.js';
+import { setupUIButtons } from './uiButtons.js';
+import { setupGameOverPopup } from './popup.js';
+import {
+  getScore,
+  setScore,
+  getMaxScore,
+  setMaxScore,
+  updateScore,
+  updateScoreBoard,
+  updateAllScoreDisplays,
+  getGameOver,
+  setGameOver,
+  resetScore
+} from './score.js';
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const floatingCanvas = document.getElementById("floatingCanvas");
   const gameCanvas = document.getElementById("gameCanvas");
   const spawnButton = document.getElementById("spawn-button");
-  const menuButton = document.getElementById("menu-button");
 
   const rows = 8;
   const cols = 8;
@@ -29,50 +42,52 @@ document.addEventListener("DOMContentLoaded", () => {
   let figures = [];
   let figuresPos = [];
 
-  // dragCoords и dragIndex теперь внутри dragHandler, но redrawScene нуждается в них,
-  // поэтому добавим локальные переменные для синхронизации:
-  let dragCoords = null;
-  let dragIndex = null;
+  function setFigures(f) {
+    figures = f;
+  }
+  function setFiguresPos(pos) {
+    figuresPos = pos;
+  }
 
-  initializeDragHandlers({
-    floatingCanvas,
-    gameCanvas,
-    field,
-    figuresRef: () => figures,
-    setFigures: (f) => { figures = f; },
-    figuresPosRef: () => figuresPos,
-    setFiguresPos: (pos) => { figuresPos = pos; },
-    cellSize,
-    cols,
-    rows,
-    redraw: redrawScene,
-    drawField
-  });
-  setTouchSensitivity(1);
+  let maxScore = getMaxScore();
 
-  // Чтобы dragCoords и dragIndex были актуальны при redraw,
-  // можно подписаться на события и обновлять эти переменные.
-  // Но проще — обновлять их внутри обработчиков перетаскивания.
-  // Для этого нужно экспортировать из dragHandler специальные getter'ы или 
-  // передавать callback — для простоты будем считать redrawCurrent их берёт из dragHandler.
+  const highScoreText = document.querySelector('.high-score-text');
+  const storedMax = localStorage.getItem('tetrisMaxScore');
+  if (highScoreText && storedMax) {
+    highScoreText.textContent = `Рекорд: ${storedMax}`;
+  }
 
-  function getRandomFigure() {
-    const index = Math.floor(Math.random() * FIGURES.length);
-    return FIGURES[index];
+  function canPlaceAnyFigure(figuresToCheck) {
+    for (const figure of figuresToCheck) {
+      for (let row = 0; row <= rows - figure.shape.length; row++) {
+        for (let col = 0; col <= cols - figure.shape[0].length; col++) {
+          if (doesFigureFit(field, figure.shape, { row, col })) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   function spawnFigures() {
-    // Спавним 3 фигуры
-    figures = [getRandomFigure(), getRandomFigure(), getRandomFigure()];
+    if (getGameOver()) return;
 
-    const containerSize = cellSize * 4; // Размер контейнера для каждой фигуры
-    const gameRect = gameCanvas.getBoundingClientRect();
-    const floatingRect = floatingCanvas.getBoundingClientRect();
+    figures = [
+      chooseSmartFigure(field),
+      chooseSmartFigure(field),
+      chooseSmartFigure(field)
+    ];
 
-    const baseY = gameRect.bottom + 10 - floatingRect.top; // Немного ниже игрового поля
-    const centerX = gameRect.left + gameRect.width / 2 - floatingRect.left;
+    if (!canPlaceAnyFigure(figures)) {
+      onGameOver();
+      return;
+    }
 
-    // Располагаем фигуры с промежутком в контейнерах
+    const containerSize = cellSize * 4;
+    const centerX = floatingCanvas.width / 2;
+    const baseY = gameCanvas.getBoundingClientRect().bottom + 10;
+
     figuresPos = [
       { x: centerX - containerSize * 1.5, y: baseY },
       { x: centerX - containerSize / 2, y: baseY },
@@ -93,19 +108,102 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  spawnButton.addEventListener("click", () => {
-    spawnFigures();
+  function onFigurePlaced() {
+    if (getGameOver()) return;
+
+    if (figures.length === 0) {
+      spawnFigures();
+    } else {
+      if (!canPlaceAnyFigure(figures)) {
+        onGameOver();
+      }
+    }
+
+    updateScoreBoard();
+  }
+
+  initializeDragHandlers({
+    floatingCanvas,
+    gameCanvas,
+    field,
+    figuresRef: () => figures,
+    setFigures,
+    figuresPosRef: () => figuresPos,
+    setFiguresPos,
+    cellSize,
+    cols,
+    rows,
+    redraw: redrawScene,
+    drawField,
+    updateScore,
+    updateScoreBoard,
+    onFigurePlaced
   });
 
-  menuButton.addEventListener("click", () => {
-    if (window.Telegram?.WebApp?.showPopup) {
-      window.Telegram.WebApp.showPopup({
-        title: "Меню",
-        message: "Пауза, настройки, донат",
-        buttons: [{ text: "Закрыть", type: "close" }],
+  setTouchSensitivity(1);
+
+  const gameOverPopup = setupGameOverPopup({
+    onRestart: () => {
+      setGameOver(false);
+
+      for (let r = 0; r < field.length; r++) {
+        for (let c = 0; c < field[r].length; c++) {
+          field[r][c] = 0;
+        }
+      }
+
+      setFigures([]);
+      setFiguresPos([]);
+      setScore(0);
+
+      spawnFigures();
+      updateAllScoreDisplays();
+
+      redrawScene({
+        floatingCanvas,
+        gameCanvas,
+        gameCtx,
+        field,
+        figures,
+        figuresPos,
+        dragCoords: null,
+        dragIndex: null,
+        cellSize,
+        drawField
       });
     }
   });
+
+  function onGameOver() {
+    if (getGameOver()) return;
+    setGameOver(true);
+
+    setMaxScore(getScore());
+    maxScore = getMaxScore();
+
+    gameOverPopup.show({
+      maxScore,
+      finalScore: getScore()
+    });
+  }
+
+  setupUIButtons({
+    onSpawn: spawnFigures,
+    onGameOver
+  });
+
+  const startButton = document.getElementById("startButton");
+  if (startButton) {
+    startButton.addEventListener("click", () => {
+      document.getElementById("welcomeScreen").style.display = "none";
+      document.getElementById("container").style.display = "block";
+
+      spawnFigures();
+      updateAllScoreDisplays();
+
+      if (spawnButton) spawnButton.style.display = "none";
+    });
+  }
 
   redrawScene({
     floatingCanvas,

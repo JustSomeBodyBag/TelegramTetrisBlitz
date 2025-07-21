@@ -1,12 +1,17 @@
+import { FIGURE_DESIGNS } from './design.js';
+
+
 export function drawFigure(ctx, figure, gridPos, cellSize, pixelPos = null, options = {}) {
   const scale = options.scale ?? 1;
   const offsetX = options.offsetX ?? 0;
   const offsetY = options.offsetY ?? 0;
 
   const shape = figure.shape;
-  const color = figure.color;
+  const design = FIGURE_DESIGNS[figure.id] || { color: figure.color ?? "#999", borderColor: "#666" };
 
-  ctx.fillStyle = color;
+  ctx.fillStyle = design.color;
+  ctx.strokeStyle = design.borderColor;
+  const borderWidth = 2;
 
   for (let row = 0; row < shape.length; row++) {
     for (let col = 0; col < shape[row].length; col++) {
@@ -25,6 +30,10 @@ export function drawFigure(ctx, figure, gridPos, cellSize, pixelPos = null, opti
       }
 
       ctx.fillRect(x, y, cellSize * scale, cellSize * scale);
+
+      // Рисуем рамку
+      ctx.lineWidth = borderWidth;
+      ctx.strokeRect(x, y, cellSize * scale, cellSize * scale);
     }
   }
 }

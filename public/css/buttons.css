@@ -1,0 +1,53 @@
+/* buttons.css */
+.top-button {
+  position: fixed;
+  top: 10px;
+  padding: 8px 16px;
+  font-size: 16px;
+  background: #3390ec; 
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  z-index: 3;
+  transition: background 0.3s ease;
+  box-shadow: 0 2px 8px #3390ecaa;
+}
+
+.top-button:hover {
+  background: #4ca0ff;
+}
+
+.top-button.left {
+  left: 10px;
+}
+
+.top-button.right {
+  right: 10px;
+}
+
+.top-button.gameover {
+  top: 50px; /* например, чуть ниже */
+  right: 10px;
+  background: #e63946; /* красный */
+  box-shadow: 0 2px 8px #e63946aa;
+}
+
+.top-button.gameover:hover {
+  background: #f94a5a;
+}
+
+#scoreBoard {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  background: #222;
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px #0006;
+  z-index: 5;
+}

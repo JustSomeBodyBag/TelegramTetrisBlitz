@@ -46,14 +46,20 @@ export function clearFullLines(field) {
   const rows = field.length;
   const cols = field[0].length;
 
+  let clearedRows = 0;
+  let clearedCols = 0;
+
+  // Очищаем полные строки
   for (let r = 0; r < rows; r++) {
     if (field[r].every(cell => cell === 1)) {
       for (let c = 0; c < cols; c++) {
         field[r][c] = 0;
       }
+      clearedRows++;
     }
   }
 
+  // Очищаем полные столбцы
   for (let c = 0; c < cols; c++) {
     let fullCol = true;
     for (let r = 0; r < rows; r++) {
@@ -66,22 +72,30 @@ export function clearFullLines(field) {
       for (let r = 0; r < rows; r++) {
         field[r][c] = 0;
       }
+      clearedCols++;
     }
   }
+
+  return { totalCleared: clearedRows + clearedCols };
 }
 
-export function doesFigureFit(field, figure, pos) {
-  for (let r = 0; r < figure.length; r++) {
-    for (let c = 0; c < figure[r].length; c++) {
-      if (figure[r][c]) {
-        const fr = pos.row + r;
-        const fc = pos.col + c;
 
-        if (
-          fr < 0 || fr >= field.length ||
-          fc < 0 || fc >= field[0].length ||
-          field[fr][fc] !== 0
-        ) {
+export function doesFigureFit(field, shape, position) {
+  const { row: posRow, col: posCol } = position;
+
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[r].length; c++) {
+      if (shape[r][c]) { // если в этой клетке фигуры есть блок (например, 1)
+        const fieldRow = posRow + r;
+        const fieldCol = posCol + c;
+
+        // Проверяем выход за границы поля
+        if (fieldRow < 0 || fieldRow >= field.length || fieldCol < 0 || fieldCol >= field[0].length) {
+          return false;
+        }
+
+        // Проверяем, занята ли уже клетка поля
+        if (field[fieldRow][fieldCol]) {
           return false;
         }
       }

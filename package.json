@@ -1,6 +1,6 @@
 {
   "name": "telegram-tetris-blitz",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "description": "Минималистичная игра Tetris-like для Telegram WebApp с интеграцией платежей, авторизации и таблицей рекордов",
   "main": "public/js/main.js",
   "scripts": {

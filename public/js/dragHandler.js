@@ -17,6 +17,12 @@ let startDragPos = null;    // Начальная позиция фигуры
 let baseSensitivity = 1.0;  // Минимальная чувствительность
 let sensitivityBoost = 0.15; // Коэффициент усиления чувствительности
 
+// Функции для обновления счёта — будут переданы из main.js
+let updateScore = () => {};
+let updateScoreBoard = () => {};
+let onFigurePlaced = null; // Функция вызывается после успешного размещения фигуры
+let checkGameOver = () => {};
+
 export function setTouchSensitivity(value) {
   baseSensitivity = value;
 }
@@ -34,8 +40,15 @@ export function initializeDragHandlers(params) {
     cols,
     rows,
     redraw,
-    drawField
+    drawField,
+    updateScore,
+    updateScoreBoard,
+    onFigurePlaced,
+    checkGameOver
   } = params);
+
+  updateScore(10);
+  updateScoreBoard();
 
   floatingCanvas.addEventListener("mousedown", onDragStart);
   window.addEventListener("mousemove", onDragMove);
@@ -68,27 +81,20 @@ export function onDragStart(e) {
 
   dragIndex = null;
 
+  const containerSize = cellSize * 4;
+
   for (let i = figures.length - 1; i >= 0; i--) {
-    const fig = figures[i];
     const pos = figuresPos[i];
-    const scale = 0.7; // начальный масштаб фигур
-
-    const figWidth = fig.shape[0].length * cellSize * scale;
-    const figHeight = fig.shape.length * cellSize * scale;
-
-    const containerSize = cellSize * 4;
-    const offsetX = (containerSize - figWidth) / 2;
-    const offsetY = (containerSize - figHeight) / 2;
 
     if (
-      mouseX >= pos.x + offsetX &&
-      mouseX <= pos.x + offsetX + figWidth &&
-      mouseY >= pos.y + offsetY &&
-      mouseY <= pos.y + offsetY + figHeight
+      mouseX >= pos.x &&
+      mouseX <= pos.x + containerSize &&
+      mouseY >= pos.y &&
+      mouseY <= pos.y + containerSize
     ) {
       dragIndex = i;
-      dragOffset.x = mouseX - (pos.x + offsetX);
-      dragOffset.y = mouseY - (pos.y + offsetY);
+      dragOffset.x = mouseX - pos.x;
+      dragOffset.y = mouseY - pos.y;
       break;
     }
   }
@@ -116,17 +122,13 @@ export function onDragMove(e, options = {}) {
   const rect = floatingCanvas.getBoundingClientRect();
 
   if (isTouch && startTouchPos && startDragPos) {
-    // Смещение пальца от стартовой точки
     const dx = e.clientX - startTouchPos.x;
     const dy = e.clientY - startTouchPos.y;
 
-    // Расстояние от стартовой точки
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Плавная чувствительность, с мягким коэффициентом
     const sensitivity = 1 + Math.sqrt(distance) * 0.03;
 
-    // Смещение фигуры с учётом чувствительности
     const adjDx = dx * sensitivity;
     const adjDy = dy * sensitivity;
 
@@ -135,7 +137,6 @@ export function onDragMove(e, options = {}) {
       y: startDragPos.y + adjDy - dragOffset.y
     };
   } else {
-    // Для мыши просто обычное смещение
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
@@ -150,9 +151,6 @@ export function onDragMove(e, options = {}) {
   redrawCurrent();
 }
 
-
-
-
 export function onDragEnd(e) {
   if (!isDragging || dragIndex === null) return;
   isDragging = false;
@@ -164,7 +162,7 @@ export function onDragEnd(e) {
   const floatingRect = floatingCanvas.getBoundingClientRect();
   const gameRect = gameCanvas.getBoundingClientRect();
 
-  const scale = 1.0;
+  const scale = 0.7;
   const figWidth = figure.shape[0].length * cellSize * scale;
   const figHeight = figure.shape.length * cellSize * scale;
 
@@ -178,6 +176,7 @@ export function onDragEnd(e) {
     relativeX + figWidth > gameRect.width + deadZone ||
     relativeY + figHeight > gameRect.height + deadZone
   ) {
+    // Вернуть фигуру на исходную позицию, если вышли за игровое поле
     dragCoords = { ...figuresPos[dragIndex] };
     redrawCurrent();
     dragIndex = null;
@@ -196,9 +195,24 @@ export function onDragEnd(e) {
   const newPos = { row, col };
 
   if (doesFigureFit(field, figure.shape, newPos)) {
+    // Фигура подходит — фиксируем её на поле
     fixFigureToField(field, figure.shape, newPos);
-    clearFullLines(field);
 
+    // Очищаем полные линии и считаем очки
+    const cleared = clearFullLines(field);
+    const linesCleared = cleared.totalCleared || 0;
+
+    const area = figure.shape.flat().filter(v => v === 1).length;
+
+    const placementScore = area;
+    const clearScore = linesCleared * 10;
+
+    const gained = placementScore + clearScore;
+
+    updateScore(gained);
+    updateScoreBoard();
+
+    // Удаляем фигуру из списка доступных
     const newFigures = figures.slice();
     const newFiguresPos = figuresPos.slice();
 
@@ -208,15 +222,26 @@ export function onDragEnd(e) {
     setFigures(newFigures);
     setFiguresPos(newFiguresPos);
 
+    // Callback после успешного размещения фигуры
+    if (typeof onFigurePlaced === "function") {
+      onFigurePlaced();
+    }
+
+    // Сброс координат и индексов drag
     dragCoords = null;
     dragIndex = null;
     lastTouchPos = null;
     startTouchPos = null;
     startDragPos = null;
   } else {
-    dragCoords = { ...figuresPos[dragIndex] };
+    // Если фигуру поставить нельзя — вернуть на исходную позицию с корректировкой
+    dragCoords = {
+      x: figuresPos[dragIndex].x + cellSize * 2 - (figure.shape[0].length * cellSize) / 2,
+      y: figuresPos[dragIndex].y + cellSize * 2 - (figure.shape.length * cellSize) / 2
+    };
   }
 
+  // Перерисовать текущий статус
   redrawCurrent();
 }
 
