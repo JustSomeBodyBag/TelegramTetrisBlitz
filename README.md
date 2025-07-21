@@ -1,4 +1,4 @@
-#Pre-Alva version
+#Pre-Alva version v 0.0.3
 
 # 🎮 Telegram Tetris Blitz
 
