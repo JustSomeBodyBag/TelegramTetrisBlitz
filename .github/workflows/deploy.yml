@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   deploy:
@@ -21,7 +21,15 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          cd /var/www/telegramtetrisblitz.ru/app
+          echo "Current directory before cd:"
+          pwd
+          cd /home/ruslan/telegramtetrisblitz.ru/app || { echo "Directory not found!"; exit 1; }
+          echo "Changed directory to:"
+          pwd
+          echo "Pulling latest changes..."
           git pull origin main
+          echo "Installing npm dependencies..."
           npm install
+          echo "Restarting or starting pm2 process..."
           pm2 restart telegram-tetris || pm2 start node_modules/.bin/live-server --name telegram-tetris -- public
+          echo "Deployment finished."
