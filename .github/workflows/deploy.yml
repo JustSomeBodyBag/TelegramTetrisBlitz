@@ -32,4 +32,4 @@ jobs:
           npm install
           echo "Restarting or starting pm2 process..."
           pm2 restart telegram-tetris || pm2 start node_modules/.bin/live-server --name telegram-tetris -- public
-          echo "Deployment finished."
+          echo "Deployment finished"
