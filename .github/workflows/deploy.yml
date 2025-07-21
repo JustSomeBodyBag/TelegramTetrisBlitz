@@ -25,7 +25,7 @@ jobs:
         script: |
           echo "Current directory before cd:"
           pwd
-          cd /home/${{ secrets.USER }}/app || { echo "Directory not found!"; exit 1; }
+          cd /var/www/telegramtetrisblitz.ru || { echo "Directory not found!"; exit 1; }
           echo "Changed directory to:"
           pwd
           echo "Pulling latest changes..."
